@@ -85,7 +85,7 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
 
           {/* 메뉴 패널 */}
           <motion.div
-            className="fixed top-0 right-0 h-full w-[300px] bg-white dark:bg-slate-900 z-50 shadow-xl flex flex-col"
+            className="fixed top-0 right-0 h-full w-64 bg-white dark:bg-slate-900 z-50 shadow-xl flex flex-col" // 너비 조정
             variants={menuVariants}
             initial="closed"
             animate="open"

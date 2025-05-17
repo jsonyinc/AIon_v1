@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Calendar, User, Tag, ArrowRight, Clock } from "lucide-react"
 import Header from "@/components/header"
+import { useParams } from 'next/navigation'; // useParams 훅 임포트
 
 // 블로그 카테고리 데이터
 const categories = [
@@ -109,9 +110,10 @@ const categoryDescriptions = {
   news: "Alon Inc.와 AI 산업의 최신 소식을 전합니다. 투자 유치, 신제품 출시, 주요 행사 등 중요한 뉴스를 확인하세요.",
 }
 
-export default function CategoryPage({ params }: { params: { category: string } }) {
+export default function CategoryPage() { // params 인자 제거
   const [searchQuery, setSearchQuery] = useState("")
-  const categoryId = params.category
+  const params = useParams(); // useParams 훅 사용
+  const categoryId = params.category as string; // category 파라미터 가져오기
 
   // 현재 카테고리 정보 가져오기
   const currentCategory = categories.find((cat) => cat.id === categoryId) || {
@@ -190,7 +192,7 @@ export default function CategoryPage({ params }: { params: { category: string } 
                       <li key={category.id}>
                         <Link
                           href={category.id === "all" ? "/blog" : `/blog/category/${category.id}`}
-                          className={`block px-3 py-2 rounded-md flex justify-between items-center transition-colors ${
+                          className={`px-3 py-2 rounded-md flex justify-between items-center transition-colors ${
                             categoryId === category.id ? "bg-green-50 text-green-600" : "hover:bg-gray-50"
                           }`}
                         >
