@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from 'next/image';
 import { Button } from "@/components/ui/button"
 import { Menu, ChevronDown } from "lucide-react"
 import MobileMenu from "./mobile-menu"
@@ -43,32 +44,39 @@ export default function Header() {
         <div className="container mx-auto px-4 flex justify-between items-center">
           <div className="flex items-center">
             <Link href="/" className="text-xl font-bold text-black flex items-center">
-              Alon <span className="text-xs ml-1 text-gray-500">Inc.</span>
+              <Image
+                src="/logo.png"
+                alt="AIon Inc Logo"
+                width={40}  // 실제 로고 이미지 크기에 맞게 조정하세요. => 의미 없음
+                height={40} // 실제 로고 이미지 크기에 맞게 조정하세요. => 의미 없음
+                className="h-12 w-auto" // 예시: 높이를 기준으로 자동 너비 조정 (Tailwind CSS)
+              />
+              <span className="text-4xl font-bold text-black ml-2">AIon</span>
             </Link>
           </div>
 
           <nav className="hidden md:flex space-x-1">
             <Link
               href="#problem"
-              className="text-sm px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
+              className="text-xl font-bold px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
             >
               문제 인식
             </Link>
             <Link
               href="#solution"
-              className="text-sm px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
+              className="text-xl font-bold px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
             >
               솔루션
             </Link>
             <Link
               href="#product"
-              className="text-sm px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
+              className="text-xl font-bold px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
             >
               제품
             </Link>
             <Link
               href="#about"
-              className="text-sm px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
+              className="text-xl font-bold px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
             >
               회사 소개
             </Link>
@@ -76,29 +84,29 @@ export default function Header() {
             {/* 블로그 드롭다운 메뉴 */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="text-sm px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors flex items-center">
+                <button className="text-xl font-bold px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors flex items-center">
                   블로그
                   <ChevronDown className="ml-1 h-4 w-4" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="center" className="w-48">
                 <DropdownMenuItem asChild>
-                  <Link href="/blog" className="cursor-pointer">
+                  <Link href="/blog" className="cursor-pointer text-lg font-semibold">
                     전체 글
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/blog/category/ai-trend" className="cursor-pointer">
+                  <Link href="/blog/category/ai-trend" className="cursor-pointer text-lg font-semibold">
                     AI 트렌드
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/blog/category/case-study" className="cursor-pointer">
+                  <Link href="/blog/category/case-study" className="cursor-pointer text-lg font-semibold">
                     성공 사례
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/blog/category/tech" className="cursor-pointer">
+                  <Link href="/blog/category/tech" className="cursor-pointer text-lg font-semibold">
                     기술 블로그
                   </Link>
                 </DropdownMenuItem>
@@ -107,7 +115,7 @@ export default function Header() {
 
             <Link
               href="#contact"
-              className="text-sm px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
+              className="text-xl font-bold px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
             >
               연락처
             </Link>

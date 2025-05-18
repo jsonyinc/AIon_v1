@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input"
 import { motion, useScroll, useTransform } from "framer-motion"
 import { CheckCircle2, ChevronRight, Users, Zap, BarChart3, PieChart, LineChart, UserCircle } from "lucide-react"
 import Header from "@/components/header"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 export default function Home() {
   const { scrollYProgress } = useScroll()
@@ -951,12 +953,32 @@ export default function Home() {
                     </label>
                     <Input id="phone" className="w-full text-gray-900" placeholder="010-1234-5678" />
                   </div>
-                  <div>
+                  {/* <div>
                     <label htmlFor="interest" className="block text-sm font-medium text-gray-700 mb-1">
                       관심 분야 *
                     </label>
                     <Input id="interest" className="w-full text-gray-900" placeholder="AI 솔루션" />
+                  </div> */}
+
+                  <div>
+                    <label htmlFor="interest" className="block text-sm font-medium text-gray-700 mb-1">
+                      관심 분야 *
+                    </label>
+                    <Select>
+                      <SelectTrigger className="w-full text-gray-900"> {/* 또는 이전의 text-gray-500 등 */}
+                        <SelectValue placeholder="관심 분야를 선택하세요" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="시장 트렌드">시장 트렌드</SelectItem>
+                        <SelectItem value="AI 솔루션">AI 솔루션</SelectItem>
+                        <SelectItem value="비즈니스 컨설팅">비즈니스 컨설팅</SelectItem>
+                        <SelectItem value="웹앱 구축">웹앱 구축</SelectItem>
+                        <SelectItem value="마케팅 전략">마케팅 전략</SelectItem>
+                        <SelectItem value="기타">기타</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
+
                   <div>
                     <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
                       메시지
