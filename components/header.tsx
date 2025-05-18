@@ -69,10 +69,10 @@ export default function Header() {
               솔루션
             </Link>
             <Link
-              href="#product"
+              href="#benefit"
               className="text-xl font-bold px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
             >
-              제품
+              혜택
             </Link>
             <Link
               href="#about"
@@ -122,10 +122,14 @@ export default function Header() {
           </nav>
 
           <div className="flex items-center space-x-4">
+            {/* 상담 신청 버튼 */}
+            <Link href="#contact" passHref legacyBehavior>
             <Button className="hidden md:flex bg-orange-500 hover:bg-orange-600 text-white rounded-full">
-              상담 신청
+              문의
             </Button>
+            </Link>
 
+            {/* 상담 신청 버튼 */}
             <button
               className="md:hidden p-2 rounded-md hover:bg-gray-100 transition-colors"
               onClick={() => setIsMenuOpen(true)}
