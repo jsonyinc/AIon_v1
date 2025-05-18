@@ -22,7 +22,7 @@ export default function Home() {
   return (
     <div className="relative overflow-hidden">
       {/* 배경 패턴 */}
-      <div className="absolute inset-0 bg-[url('/pattern.png')] bg-repeat opacity-5 pointer-events-none z-0" />
+      {/* <div className="absolute inset-0 bg-[url('/pattern.png')] bg-repeat opacity-5 pointer-events-none z-0" /> */}
 
       {/* 헤더 */}
       <Header />
@@ -931,31 +931,31 @@ export default function Home() {
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                       이름 *
                     </label>
-                    <Input id="name" className="w-full" placeholder="홍길동" />
+                    <Input id="name" className="w-full text-gray-900" placeholder="홍길동" />
                   </div>
                   <div>
                     <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-1">
                       회사명 *
                     </label>
-                    <Input id="company" className="w-full" placeholder="주식회사 예시" />
+                    <Input id="company" className="w-full text-gray-900" placeholder="주식회사 예시" />
                   </div>
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                       이메일 *
                     </label>
-                    <Input id="email" type="email" className="w-full" placeholder="example@company.com" />
+                    <Input id="email" type="email" className="w-full text-gray-900" placeholder="example@company.com" />
                   </div>
                   <div>
                     <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
                       연락처 *
                     </label>
-                    <Input id="phone" className="w-full" placeholder="010-1234-5678" />
+                    <Input id="phone" className="w-full text-gray-900" placeholder="010-1234-5678" />
                   </div>
                   <div>
                     <label htmlFor="interest" className="block text-sm font-medium text-gray-700 mb-1">
                       관심 분야 *
                     </label>
-                    <Input id="interest" className="w-full" placeholder="AI 솔루션" />
+                    <Input id="interest" className="w-full text-gray-900" placeholder="AI 솔루션" />
                   </div>
                   <div>
                     <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
@@ -963,7 +963,7 @@ export default function Home() {
                     </label>
                     <textarea
                       id="message"
-                      className="w-full min-h-[100px] rounded-md border border-gray-300 p-2"
+                      className="w-full min-h-[100px] rounded-md border border-gray-300 p-2 text-gray-900 placeholder:text-gray-200" // placeholder 색상 추가
                       placeholder="문의사항을 입력하세요."
                     />
                   </div>
