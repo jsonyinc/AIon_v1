@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react"; // Assuming mounted state is needed in HeroSection
+import Link from "next/link"
 
 export default function HeroSection() {
   const { scrollYProgress } = useScroll();
@@ -25,27 +26,33 @@ export default function HeroSection() {
           transition={{ duration: 0.5 }}
           className="max-w-4xl mx-auto text-center mb-12"
         >
-          <h1 className="text-4xl md:text-5xl font-bold mb-8 leading-loose">
+          <h1 className="text-4xl md:text-5xl font-bold mb-8 leading-normal">
             AI 비즈니스 혁명, <span className="text-green-500">RomiⒻ</span>: <br />
-            <span className="whitespace-nowrap">Agent Boss가 지휘하는 '인간과 AI의 협업'</span> <br />
-            <span className="whitespace-nowrap">비즈니스 혁신의 미래를 열다</span>
+            <span className="">'Agent Boss'가 지휘하는 '인간과 AI의 협업'</span> <br />
+            <span className="">비즈니스 혁신의 미래를 열다</span>
           </h1>
-          <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-            인간과 AI의 완벽한 시너지, '에이전트 보스' 시스템이 AI 혁신의 막연함을 걷어내고, 투자자와 기업의 실질적
-            성장을 견인합니다.
+          <p className="text-gray-600 text-xl mb-8 max-w-2xl mx-auto">
+            인간과 AI agent의 완벽한 시너지, <span className="text-green-500 font-bold">'인간-AI 업무 오케스트레이션'</span>
+            시스템이 AI 혁신의 막연함을 걷어내고, 투자자와 기업의 실질적 성장을 견인합니다.
           </p>
-          <div className="bg-orange-100/50 p-4 rounded-lg text-sm text-orange-800 mb-8 max-w-3xl mx-auto">
-            Alon Inc.는 단순한 AI 솔루션 그 이상, 인간과 AI가 자연스럽게 공존하는 프론티어의 가능성에 빛을 가르켜
-            줍니다. Romi는 귀사의 AI 혁신 여정을 이끌 '에이전트 보스' 기반 솔루션으로, 귀하의 비즈니스를 더하여 성장의
-            실제와 미래 비전을 선사합니다.
+          <div className="bg-orange-100/70 p-4 rounded-lg text-base text-orange-800 mb-8 max-w-3xl mx-auto">
+            <span className="text-green-500 font-bold">RomiⒻ</span><span className="text-green-500">(Romi 팩토리)</span>
+            는 단순한 AI 솔루션 그 이상, 인간과 AI가 자연스럽게 공존하는 프론티어 기업의 가능성에 비전을 제시해 줍니다.{" "}  
+            <span className="text-green-500 font-bold">RomiⒻ</span>의 선구적인 'Agent Boss' 모델은 AI 협업자를 지능적으로 관리하여
+            팀의 역량을 극대화하고, <span className="text-green-500 font-bold">비즈니스 전략부터 MVP, PoC, Core AI Model 개발의 전 과정</span>
+            에 걸쳐 획기적인 성과를 제공합니다.
           </div>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button className="bg-orange-500 hover:bg-orange-600 text-white rounded-full px-8 py-6">
-              <span>Romi 솔루션, 지금 바로 경험하세요!</span>
-              <ChevronRight className="ml-2 h-4 w-4" />
+            <Button asChild className="bg-orange-500 hover:bg-orange-600 text-white rounded-full px-8 py-6">
+              <Link href="#contact" className="flex items-center">
+                <span>RomiⒻ 솔루션, 지금 바로 경험하세요!</span>
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
-            <Button variant="outline" className="border-gray-300 text-gray-700 rounded-full px-8 py-6">
-              <span>'프론트엔드 기업' 비전 살펴보기</span>
+            <Button asChild variant="outline" className="border-gray-300 text-gray-700 rounded-full px-8 py-6">
+              <Link href="/insights/global-ai-trends-report">
+                <span>'글로벌 AI 트렌드 리포트' 보기</span>
+              </Link>
             </Button>
           </div>
         </motion.div>

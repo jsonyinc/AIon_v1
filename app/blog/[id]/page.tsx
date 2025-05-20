@@ -142,6 +142,38 @@ export default function BlogPostPage({ params }: { params: { id: string } }) {
     fetchPost();
   }, [params.id, router]); // ID 또는 router 객체가 변경될 때마다 데이터 다시 가져오기
 
+    useEffect(() => {
+        // URL 해시 기반 스크롤 로직
+        const handleHashScroll = () => {
+            if (window.location.hash) {
+                const elementId = window.location.hash.substring(1);
+                const element = document.getElementById(elementId);
+                if (element) {
+                    // 헤더 높이를 고려하여 스크롤 위치 조정 (Header 높이가 48px임을 감안)
+                    const headerHeight = document.querySelector('header')?.offsetHeight || 0; // 동적으로 헤더 높이 가져오기
+                    const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+                    window.scrollTo({
+                        top: elementPosition - headerHeight,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+        };
+
+        // 페이지 마운트 시 스크롤 로직 실행
+        handleHashScroll();
+
+        // 해시 변경 시 스크롤 로직 다시 실행 (SPA 네비게이션 고려)
+        window.addEventListener('hashchange', handleHashScroll);
+
+        // 컴포넌트 언마운트 시 이벤트 리스너 해제
+        return () => {
+            window.removeEventListener('hashchange', handleHashScroll);
+        };
+
+    }, []); // 빈 배열을 전달하여 컴포넌트 마운트 시 한 번만 실행
+
+
   // 로딩 중이거나 게시물을 찾지 못한 경우
   if (loading) {
     return (

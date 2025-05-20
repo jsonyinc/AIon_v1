@@ -50,6 +50,12 @@
 }
 
 @layer base {
+  html {
+    /* Ensure scrollbar space is always reserved */
+    overflow-y: scroll !important;
+    padding-right: 0 !important; /* Prevent padding added by some libraries */
+    box-sizing: border-box; /* Include padding and border in element's total width and height */
+  }
   * {
     @apply border-border;
   }

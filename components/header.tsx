@@ -52,30 +52,31 @@ export default function Header() {
                 className="h-12 w-auto" // 예시: 높이를 기준으로 자동 너비 조정 (Tailwind CSS)
               />
               <span className="text-4xl font-bold text-black ml-2">AIon</span>
+              <span className="text-4xl font-bold text-green-500 ml-2">RomiⒻ</span>
             </Link>
           </div>
 
           <nav className="hidden md:flex space-x-1">
             <Link
-              href="#problem"
+              href="/#problem"
               className="text-xl font-bold px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
             >
               문제 인식
             </Link>
             <Link
-              href="#solution"
+              href="/#solution"
               className="text-xl font-bold px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
             >
               솔루션
             </Link>
             <Link
-              href="#benefit"
+              href="/#benefit"
               className="text-xl font-bold px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
             >
               혜택
             </Link>
             <Link
-              href="#about"
+              href="/#about"
               className="text-xl font-bold px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
             >
               회사 소개
@@ -114,7 +115,7 @@ export default function Header() {
             </DropdownMenu>
 
             <Link
-              href="#contact"
+              href="/#contact"
               className="text-xl font-bold px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
             >
               연락처
@@ -122,14 +123,14 @@ export default function Header() {
           </nav>
 
           <div className="flex items-center space-x-4">
-            {/* 상담 신청 버튼 */}
-            <Link href="#contact" passHref legacyBehavior>
+            {/* 문의 버튼 */}
+            <Link href="/#contact" passHref legacyBehavior>
             <Button className="hidden md:flex bg-orange-500 hover:bg-orange-600 text-white rounded-full">
               문의
             </Button>
             </Link>
 
-            {/* 상담 신청 버튼 */}
+            {/* 문의 버튼 */}
             <button
               className="md:hidden p-2 rounded-md hover:bg-gray-100 transition-colors"
               onClick={() => setIsMenuOpen(true)}

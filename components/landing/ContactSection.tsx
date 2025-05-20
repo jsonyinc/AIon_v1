@@ -108,10 +108,10 @@ export default function ContactSection() {
                     관심 분야 *
                   </label>
                   <Select>
-                    <SelectTrigger className="w-full text-gray-900"> {/* 또는 이전의 text-gray-500 등 */}
+                    <SelectTrigger className="w-full text-gray-900 placeholder:text-gray-200"> {/* 또는 이전의 text-gray-500 등 */}
                       <SelectValue placeholder="관심 분야를 선택하세요" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent position="popper" sideOffset={4} className="z-50 overflow-y-auto">
                       <SelectItem value="시장 트렌드">시장 트렌드</SelectItem>
                       <SelectItem value="AI 솔루션">AI 솔루션</SelectItem>
                       <SelectItem value="비즈니스 컨설팅">비즈니스 컨설팅</SelectItem>
