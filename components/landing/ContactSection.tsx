@@ -26,9 +26,9 @@ export default function ContactSection() {
             <h2 className="text-3xl font-bold mb-6">
               AI <span className="text-green-400">혁신의 여정을</span> 지금 시작하세요
             </h2>
-            <p className="text-gray-300 mb-6">
-              Alon Inc.는 인공지능 기술을 통해 기업의 성장과 혁신을 지원합니다. 지금 바로 문의하여 비즈니스의 새로운
-              가능성을 발견하세요.
+            <p className="text-lg text-gray-300 mb-6">
+              Alon Inc.는 인공지능 기술을 통해 기업의 성장과 혁신을 지원합니다.<br />
+              우리 지금 바로 문의하여 비즈니스의 새로운 가능성을 발견하세요.
             </p>
             {/* Corrected list structure */}
             <ul className="space-y-4">
@@ -37,8 +37,8 @@ export default function ContactSection() {
                   <CheckCircle2 className="h-5 w-5 text-green-400" />
                 </div>
                 <div>
-                  <h3 className="font-medium">무료 컨설팅 제공</h3>
-                  <p className="text-sm text-gray-400">비즈니스 요구사항에 맞는 최적의 솔루션을 제안해 드립니다.</p>
+                  <h3 className="text-lg font-medium">무료 컨설팅 제공</h3>
+                  <p className="text-base text-gray-400">비즈니스 요구사항에 맞는 최적의 솔루션을 제안해 드립니다.</p>
                 </div>
               </li>
               <li className="flex items-start">
@@ -46,8 +46,8 @@ export default function ContactSection() {
                   <CheckCircle2 className="h-5 w-5 text-green-400" />
                 </div>
                 <div>
-                  <h3 className="font-medium">ROI 분석</h3>
-                  <p className="text-sm text-gray-400">도입 시 예상되는 투자 대비 수익을 분석해 드립니다.</p>
+                  <h3 className="text-lg font-medium">ROI 분석</h3>
+                  <p className="text-base text-gray-400">도입 시 예상되는 투자 대비 수익을 분석해 드립니다.</p>
                 </div>
               </li>
               <li className="flex items-start">
@@ -55,8 +55,8 @@ export default function ContactSection() {
                   <CheckCircle2 className="h-5 w-5 text-green-400" />
                 </div>
                 <div>
-                  <h3 className="font-medium">맞춤형 솔루션</h3>
-                  <p className="text-sm text-gray-400">귀사의 비즈니스 환경에 최적화된 AI 솔루션을 제공합니다.</p>
+                  <h3 className="text-lg font-medium">맞춤형 솔루션</h3>
+                  <p className="text-base text-gray-400">귀사의 비즈니스 환경에 최적화된 AI 솔루션을 제공합니다.</p>
                 </div>
               </li>
             </ul>
@@ -76,13 +76,13 @@ export default function ContactSection() {
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                     이름 *
                   </label>
-                  <Input id="name" className="w-full text-gray-900" placeholder="홍길동" />
+                  <Input id="name" className="w-full text-gray-900" placeholder="김영" />
                 </div>
                 <div>
                   <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-1">
                     회사명 *
                   </label>
-                  <Input id="company" className="w-full text-gray-900" placeholder="주식회사 예시" />
+                  <Input id="company" className="w-full text-gray-900" placeholder="(주)에이언(AIon INC.)" />
                 </div>
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
@@ -94,7 +94,7 @@ export default function ContactSection() {
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
                     연락처 *
                   </label>
-                  <Input id="phone" className="w-full text-gray-900" placeholder="010-1234-5678" />
+                  <Input id="phone" className="w-full text-gray-900" placeholder="010-5941-1052" />
                 </div>
                 {/* <div>
                   <label htmlFor="interest" className="block text-sm font-medium text-gray-700 mb-1">
@@ -132,7 +132,7 @@ export default function ContactSection() {
                     placeholder="문의사항을 입력하세요."
                   />
                 </div>
-                <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-6">문의하기 (무료)</Button>
+                <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-6 font-bold">문의하기 (무료)</Button>
                 <p className="text-xs text-center text-gray-500">
                   <Link href="#" className="text-green-600 hover:underline">
                     개인정보처리방침

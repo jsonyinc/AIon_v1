@@ -12,10 +12,12 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           <div>
             <Link href="/" className="text-xl font-bold text-white flex items-center mb-4">
-              Alon <span className="text-xs ml-1 text-green-400">Inc.</span>
+              Alon <span className="text-xl ml-1 text-green-400">RomiⒻ</span>
             </Link>
-            <p className="text-sm text-gray-400 mb-6 max-w-xs">
-              인간과 AI의 협업을 통한 미래 비즈니스 혁신의 선두주자
+            <p className="text-base font-bold text-gray-400 mb-6 max-w-xs">
+              인간과 AI의 협업을 통한 비즈니스 혁신 기업<br />
+              Product Engineering<br />
+              Design Enineering 
             </p>
             <div className="flex space-x-4">
               <Link href="#" className="text-gray-400 hover:text-white">
@@ -41,30 +43,30 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">서비스</h3>
+            <h3 className="text-base font-semibold text-white uppercase tracking-wider mb-4">서비스</h3>
             <ul className="space-y-3">
               <li>
-                <Link href="#" className="text-sm text-gray-400 hover:text-white">
+                <Link href="#" className="text-base text-gray-400 hover:text-white">
                   AI 전략 컨설팅
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-sm text-gray-400 hover:text-white">
+                <Link href="#" className="text-base text-gray-400 hover:text-white">
                   Romi© 솔루션
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-sm text-gray-400 hover:text-white">
+                <Link href="#" className="text-base text-gray-400 hover:text-white">
                   에이전트 보스 시스템
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-sm text-gray-400 hover:text-white">
+                <Link href="#" className="text-base text-gray-400 hover:text-white">
                   조직 혁신 프로그램
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-sm text-gray-400 hover:text-white">
+                <Link href="#" className="text-base text-gray-400 hover:text-white">
                   AI 구현 및 통합
                 </Link>
               </li>
@@ -72,30 +74,30 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">회사 정보</h3>
+            <h3 className="text-base font-semibold text-white uppercase tracking-wider mb-4">회사 정보</h3>
             <ul className="space-y-3">
               <li>
-                <Link href="#" className="text-sm text-gray-400 hover:text-white">
+                <Link href="#" className="text-base text-gray-400 hover:text-white">
                   소개
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-sm text-gray-400 hover:text-white">
+                <Link href="#" className="text-base text-gray-400 hover:text-white">
                   팀
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-sm text-gray-400 hover:text-white">
+                <Link href="#" className="text-base text-gray-400 hover:text-white">
                   채용
                 </Link>
               </li>
               <li>
-                <Link href="/blog" className="text-sm text-gray-400 hover:text-white">
+                <Link href="/blog" className="text-base text-gray-400 hover:text-white">
                   블로그
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-sm text-gray-400 hover:text-white">
+                <Link href="#" className="text-base text-gray-400 hover:text-white">
                   뉴스룸
                 </Link>
               </li>
@@ -103,7 +105,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">연락처</h3>
+            <h3 className="text-base font-semibold text-white uppercase tracking-wider mb-4">연락처</h3>
             <ul className="space-y-3">
               <li className="flex items-start">
                 <div className="mt-1 mr-2">
@@ -114,9 +116,9 @@ export default function Footer() {
                     />
                   </svg>
                 </div>
-                <span className="text-sm text-gray-400">
-                  서울특별시 강남구 테헤란로 123, <br />
-                  Alon빌딩 8층
+                <span className="text-base text-gray-400">
+                  경기도 화성시 봉담읍 수영로 ㅇㅇ <br />
+                  Alon빌딩 14F
                 </span>
               </li>
               <li className="flex items-center">
@@ -128,7 +130,7 @@ export default function Footer() {
                     />
                   </svg>
                 </div>
-                <span className="text-sm text-gray-400">info@aloninc.com</span>
+                <span className="text-base text-gray-400">ceo@AIonlabs.kr</span>
               </li>
               <li className="flex items-center">
                 <div className="mr-2">
@@ -139,7 +141,7 @@ export default function Footer() {
                     />
                   </svg>
                 </div>
-                <span className="text-sm text-gray-400">02-123-4567</span>
+                <span className="text-base text-gray-400">010-5941-1052</span>
               </li>
             </ul>
           </div>

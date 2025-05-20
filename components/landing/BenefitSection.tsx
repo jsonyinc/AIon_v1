@@ -18,10 +18,10 @@ export default function BenefitSection() {
           className="text-center mb-8"
         >
           <h2 className="text-3xl font-bold mb-4">
-            Romi<span className="text-green-500">가 제공하는 핵심 혜택</span>
+            <span className="text-green-500">RomiⒻ</span>가 제공하는 핵심 혜택
           </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            인간과 에이전트 보스 시스템이 AI 솔루션의 실질적 혜택으로 이어지는 과정, 수치로 증명되는 가치를
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            인간과 'Agent Boss' 시스템이 AI 솔루션의 실질적 혜택으로 이어지는 과정과 수치로 증명되는 가치를
             확인하세요.
           </p>
         </motion.div>
@@ -40,7 +40,7 @@ export default function BenefitSection() {
               </div>
             </div>
             <h3 className="text-lg font-medium text-center mb-2">생산성 37% 향상</h3>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-base text-gray-600 mb-4">
               에이전트 보스 시스템이 도입되면서 팀의 작업 처리 속도 개선과 업무 효율성이 크게 향상됩니다. 반복적인
               작업은 AI가 처리하고, 인간은 창의적인 의사결정에 집중할 수 있습니다.
             </p>
@@ -74,8 +74,8 @@ export default function BenefitSection() {
               </div>
             </div>
             <h3 className="text-lg font-medium text-center mb-2">의사결정 시간 42% 단축</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              에이전트 보스가 데이터 기반의 의사결정을 지원하여 의사결정 시간이 크게 단축됩니다. 복잡한 문제도 AI의
+            <p className="text-base text-gray-600 mb-4">
+              'Agent Boss'가 데이터 기반의 의사결정을 지원하여 의사결정 시간이 크게 단축됩니다. 복잡한 문제도 AI의
               분석과 인간의 직관이 결합하여 더 빠르고 정확한 결정이 가능해집니다.
             </p>
             <div className="space-y-2">
@@ -108,8 +108,8 @@ export default function BenefitSection() {
               </div>
             </div>
             <h3 className="text-lg font-medium text-center mb-2">팀 협업 효율성 55% 개선</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              에이전트 보스 시스템이 팀 구성원 간의 협업 효율성이 크게 향상됩니다. AI가 정보 공유와 작업 조율을
+            <p className="text-base text-gray-600 mb-4">
+              'Agent Boss' 시스템이 팀 구성원 간의 협업 효율성이 크게 향상됩니다. AI가 정보 공유와 작업 조율을
               지원하여 팀워크가 강화되고 프로젝트 완료 시간이 단축됩니다.
             </p>
             <div className="space-y-2">
@@ -144,8 +144,8 @@ export default function BenefitSection() {
               </div>
             </div>
             <h3 className="text-lg font-medium text-center mb-2">ROI 최수기간 60% 단축</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Romi 도입 기업들은 투자 대비 수익을 거두는 기간이 평균 60% 단축되었습니다. AI 투자의 회수 기간을 크게
+            <p className="text-base text-gray-600 mb-4">
+              RomiⒻ 도입 기업들은 투자 대비 수익을 거두는 기간이 평균 60% 단축되었습니다. AI 투자의 회수 기간을 크게
               줄여 비즈니스 성장을 가속화합니다.
             </p>
             <div className="space-y-2">
@@ -178,8 +178,8 @@ export default function BenefitSection() {
               </div>
             </div>
             <h3 className="text-lg font-medium text-center mb-2">작업 만족도 48% 향상</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              직원들의 업무 만족도가 크게 향상됩니다. 에이전트 보스가 단순 반복 작업을 처리하여 직원들이 더 가치 있는
+            <p className="text-base text-gray-600 mb-4">
+              직원들의 업무 만족도가 크게 향상됩니다. 'Agent Boss'가 단순 반복 작업을 처리하여 직원들이 더 가치 있는
               업무에 집중할 수 있게 되었습니다.
             </p>
             <div className="space-y-2">
@@ -212,8 +212,8 @@ export default function BenefitSection() {
               </div>
             </div>
             <h3 className="text-lg font-medium text-center mb-2">품질 및 정확도 62% 향상</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              에이전트 보스 시스템이 품질 관리와 오류 검출을 지원하여 작업 결과물의 품질과 정확도가 크게 향상됩니다.
+            <p className="text-base text-gray-600 mb-4">
+              'Agent Boss' 시스템이 품질 관리와 오류 검출을 지원하여 작업 결과물의 품질과 정확도가 크게 향상됩니다.
               인간의 창의성과 AI의 정밀함이 결합된 결과입니다.
             </p>
             <div className="space-y-2">
