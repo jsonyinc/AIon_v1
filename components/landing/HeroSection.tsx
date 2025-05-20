@@ -42,7 +42,7 @@ export default function HeroSection() {
             팀의 역량을 극대화하고, <span className="text-green-500 font-bold">비즈니스 전략부터 MVP, PoC, Core AI Model 개발의 전 과정</span>
             에 걸쳐 획기적인 성과를 제공합니다.
           </div>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
+          <div className="flex flex-col sm:flex-row justify-center gap-4 font-bold">
             <Button asChild className="bg-orange-500 hover:bg-orange-600 text-white rounded-full px-8 py-6">
               <Link href="#contact" className="flex items-center">
                 <span>RomiⒻ 솔루션, 지금 바로 경험하세요!</span>
@@ -57,57 +57,53 @@ export default function HeroSection() {
           </div>
         </motion.div>
 
+        {/* Hero image */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.7, delay: 0.2 }}
-          className="relative mx-auto max-w-4xl"
+          className="max-w-5xl mx-auto relative"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <div className="relative bg-gradient-to-r from-slate-900 to-teal-500 rounded-xl overflow-hidden shadow-2xl">
-            <div className="absolute top-0 right-0 bg-green-400/20 text-white text-xs px-3 py-1 rounded-bl-md">
-              Romi 미래 혁신 솔루션
-            </div>
-            <div className="p-8 md:p-12 flex justify-center items-center min-h-[300px]">
-              <div className="relative w-full max-w-md">
-                <div className="flex items-center justify-center">
-                  <div className="relative">
-                    {/* Agent Boss 중앙 원 */}
-                    <div className="w-32 h-32 rounded-full bg-white/20 flex items-center justify-center text-white z-20 relative">
-                      <div className="text-center">
-                        <div className="text-lg font-medium">Agent Boss</div>
-                      </div>
-                    </div>
-
-                    {/* 연결된 에이전트들 */}
-                    <div className="absolute -left-32 top-0 w-24 h-24 rounded-full bg-white/10 flex items-center justify-center text-white text-xs">
-                      <span>Human</span>
-                    </div>
-                    <div className="absolute -right-32 top-0 w-24 h-24 rounded-full bg-white/10 flex items-center justify-center text-white text-xs">
-                      <span>Human</span>
-                    </div>
-                    <div className="absolute -left-32 bottom-0 w-24 h-24 rounded-full bg-white/10 flex items-center justify-center text-white text-xs">
-                      <span>AI Agent 1</span>
-                    </div>
-                    <div className="absolute -right-32 bottom-0 w-24 h-24 rounded-full bg-white/10 flex items-center justify-center text-white text-xs">
-                      <span>AI Agent 2</span>
-                    </div>
-
-                    {/* 연결선 */}
-                    <svg className="absolute inset-0 w-full h-full" style={{ zIndex: 10 }}>
-                      <line x1="50%" y1="50%" x2="20%" y2="30%" stroke="rgba(255,255,255,0.5)" strokeWidth="1" />
-                      <line x1="50%" y1="50%" x2="80%" y2="30%" stroke="rgba(255,255,255,0.5)" strokeWidth="1" />
-                      <line x1="50%" y1="50%" x2="20%" y2="70%" stroke="rgba(255,255,255,0.5)" strokeWidth="1" />
-                      <line x1="50%" y1="50%" x2="80%" y2="70%" stroke="rgba(255,255,255,0.5)" strokeWidth="1" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
+          <div className="aspect-[16/9] rounded-xl overflow-hidden shadow-2xl">
+            <div className="w-full h-full bg-gradient-to-r from-primary/80 to-secondary/80 flex items-center justify-center">
+              <svg className="w-full h-full" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#0A2540" stopOpacity="0.8" />
+                    <stop offset="100%" stopColor="#00C49A" stopOpacity="0.8" />
+                  </linearGradient>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#grad)" />
+                <g fill="white" opacity="0.2">
+                  <circle cx="400" cy="450" r="150" />
+                  <circle cx="800" cy="350" r="200" />
+                  <circle cx="1200" cy="450" r="150" />
+                </g>
+                <g fill="none" stroke="white" strokeWidth="2" opacity="0.5">
+                  <path d="M400,450 L800,350 L1200,450" />
+                  <path d="M400,450 C500,300 700,300 800,350 C900,400 1100,400 1200,450" />
+                </g>
+                <g fill="white" opacity="0.8">
+                  <circle cx="400" cy="450" r="10" />
+                  <circle cx="800" cy="350" r="15" />
+                  <circle cx="1200" cy="450" r="10" />
+                </g>
+                <text x="800" y="520" fontSize="40" fill="white" textAnchor="middle">Agent Boss</text>
+                <text x="400" y="400" fontSize="25" fill="white" textAnchor="middle">AI Agent 1</text>
+                <text x="1200" y="400" fontSize="25" fill="white" textAnchor="middle">AI Agent 2</text>
+                <text x="600" y="300" fontSize="25" fill="white" textAnchor="middle">Human</text>
+                <text x="1000" y="300" fontSize="25" fill="white" textAnchor="middle">Human</text>
+              </svg>
             </div>
           </div>
-          <div className="absolute -bottom-4 left-8 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium shadow-md">
-            37%
+
+          {/* Floating badge */}
+          <div className="absolute -right-4 -top-4 bg-white rounded-full px-4 py-2 shadow-lg border border-secondary/20 hidden md:flex items-center gap-2">
+            <span className="text-green-600 font-bold text-sm">RomiⒻ</span>
+            <span className="text-xs !text-primary/60">미래 혁신 솔루션</span>
           </div>
         </motion.div>
+
       </div>
     </section>
   );

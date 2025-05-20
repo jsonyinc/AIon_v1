@@ -61,7 +61,7 @@ const AutomationIcon = () => (
 );
 
 const QualityIcon = () => (
-    <svg className="text-emerald-600 w-5 h-5 mr-2 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-2.29-5.71L12 13.41l2.29 2.29 1.41-1.41L13.41 12l2.29-2.29-1.41-1.41L12 10.59 9.71 8.29 8.29 9.71 10.59 12l-2.3 2.29 1.42 1.42z"></path></svg>
+    <svg className="text-emerald-600 w-5 h-5 mr-2 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8zm-2.29-5.71L12 13.41l2.29 2.29 1.41-1.41L13.41 12l2.29-2.29-1.41-1.41L12 10.59 9.71 8.29 8.29 9.71 10.59 12l-2.3 2.29 1.42 1.42z"></path></svg>
 );
 
 const ChallengeIcon = () => (
@@ -311,88 +311,78 @@ const GlobalAITrendsReportPage = () => {
                 chartInstancesRef.current.push(chart); // 생성된 인스턴스를 useRef 배열에 추가
             }
 
-        // PDF 다운로드 이벤트 리스너
+        // PDF 다운로드 이벤트 핸들러 정의
+        const handleDownloadPdf = async () => {
+            const content = infographicsContentRef.current;
+            const downloadPdfBtnElement = document.getElementById('downloadPdfBtn'); // 버튼 참조
+
+            if (!content || !downloadPdfBtnElement) return;
+
+            downloadPdfBtnElement.style.display = 'none'; // 버튼 숨기기
+            const animatedElements = Array.from(content.querySelectorAll('.animate-on-scroll'));
+            animatedElements.forEach((el: any) => {
+                el.classList.remove('is-visible', 'animate__animated', 'animate__fadeIn', 'animate__slideInLeft', 'animate__slideInRight');
+                el.style.opacity = '1';
+                el.style.transform = 'none';
+            });
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            const mainCanvas = await html2canvas(content, {
+                scale: 1.5, logging: false, useCORS: true,
+                windowWidth: content.scrollWidth,
+                windowHeight: content.scrollHeight,
+                scrollX: 0, scrollY: 0,
+                onclone: (document) => {
+                    const noPrintElements = document.querySelectorAll('.no-print');
+                    noPrintElements.forEach(el => (el as HTMLElement).style.display = 'none');
+                }
+            });
+
+            const imgData = mainCanvas.toDataURL('image/png');
+            const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+            const imgOriginalWidth = mainCanvas.width;
+            const imgOriginalHeight = mainCanvas.height;
+            const pdfPageWidth = pdf.internal.pageSize.getWidth();
+            const pdfPageHeight = pdf.internal.pageSize.getHeight();
+            const margin = 10;
+            const contentWidthInPdf = pdfPageWidth - (margin * 2);
+            const contentHeightInPdf = pdfPageHeight - (margin * 2);
+            const scaledTotalImageHeightInPdf = imgOriginalHeight * (contentWidthInPdf / imgOriginalWidth);
+            let numPages = Math.ceil(scaledTotalImageHeightInPdf / contentHeightInPdf);
+            if (numPages === 0) numPages = 1;
+            let yPositionInOriginalImagePx = 0;
+
+            for (let i = 0; i < numPages; i++) {
+                if (i > 0) pdf.addPage();
+                let sourceSegmentHeightPx = contentHeightInPdf * (imgOriginalWidth / contentWidthInPdf);
+                sourceSegmentHeightPx = Math.min(sourceSegmentHeightPx, imgOriginalHeight - yPositionInOriginalImagePx);
+                if (sourceSegmentHeightPx <=0) continue;
+
+                const segmentCanvas = document.createElement('canvas');
+                segmentCanvas.width = imgOriginalWidth;
+                segmentCanvas.height = sourceSegmentHeightPx;
+                const segmentCtx = segmentCanvas.getContext('2d');
+                if (segmentCtx) {
+                    segmentCtx.drawImage(mainCanvas, 0, yPositionInOriginalImagePx, imgOriginalWidth, sourceSegmentHeightPx, 0, 0, imgOriginalWidth, sourceSegmentHeightPx);
+                }
+                const segmentDataUrl = segmentCanvas.toDataURL('image/png', 0.95);
+                let displaySegmentHeightMm = sourceSegmentHeightPx * (contentWidthInPdf / imgOriginalWidth);
+                displaySegmentHeightMm = Math.min(displaySegmentHeightMm, contentHeightInPdf);
+                if (displaySegmentHeightMm > 0) {
+                    pdf.addImage(segmentDataUrl, 'PNG', margin, margin, contentWidthInPdf, displaySegmentHeightMm);
+                }
+                yPositionInOriginalImagePx += sourceSegmentHeightPx;
+            }
+            pdf.save('AI_전략_인포그래픽_대시보드.pdf'); // 파일명 수정
+            downloadPdfBtnElement.style.display = 'block'; // 버튼 다시 보이기
+        };
+
+        // PDF 다운로드 이벤트 리스너 등록
         const downloadPdfBtn = document.getElementById('downloadPdfBtn');
         if (downloadPdfBtn && infographicsContentRef.current) {
-            downloadPdfBtn.addEventListener('click', async () => {
-                const content = infographicsContentRef.current;
-                if (!content) return;
-
-                downloadPdfBtn.style.display = 'none';
-                const animatedElements = Array.from(content.querySelectorAll('.animate-on-scroll'));
-                animatedElements.forEach((el: any) => {
-                    el.classList.remove('is-visible', 'animate__animated', 'animate__fadeIn', 'animate__slideInLeft', 'animate__slideInRight');
-                    el.style.opacity = '1';
-                    el.style.transform = 'none';
-                });
-
-                await new Promise(resolve => setTimeout(resolve, 100));
-
-                const mainCanvas = await html2canvas(content, {
-                    scale: 1.5, logging: false, useCORS: true,
-                    windowWidth: content.scrollWidth,
-                    windowHeight: content.scrollHeight,
-                    scrollX: 0, scrollY: 0,
-                    onclone: (document) => {
-                        const noPrintElements = document.querySelectorAll('.no-print');
-                        noPrintElements.forEach(el => (el as HTMLElement).style.display = 'none');
-                    }
-                });
-
-                const imgData = mainCanvas.toDataURL('image/png');
-                const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-                const imgOriginalWidth = mainCanvas.width;
-                const imgOriginalHeight = mainCanvas.height;
-                const pdfPageWidth = pdf.internal.pageSize.getWidth();
-                const pdfPageHeight = pdf.internal.pageSize.getHeight();
-                const margin = 10;
-                const contentWidthInPdf = pdfPageWidth - (margin * 2);
-                const contentHeightInPdf = pdfPageHeight - (margin * 2);
-                const scaledTotalImageHeightInPdf = imgOriginalHeight * (contentWidthInPdf / imgOriginalWidth);
-                let numPages = Math.ceil(scaledTotalImageHeightInPdf / contentHeightInPdf);
-                if (numPages === 0) numPages = 1;
-                let yPositionInOriginalImagePx = 0;
-
-                for (let i = 0; i < numPages; i++) {
-                    if (i > 0) pdf.addPage();
-                    let sourceSegmentHeightPx = contentHeightInPdf * (imgOriginalWidth / contentWidthInPdf);
-                    sourceSegmentHeightPx = Math.min(sourceSegmentHeightPx, imgOriginalHeight - yPositionInOriginalImagePx);
-                    if (sourceSegmentHeightPx <=0) continue;
-
-                    const segmentCanvas = document.createElement('canvas');
-                    segmentCanvas.width = imgOriginalWidth;
-                    segmentCanvas.height = sourceSegmentHeightPx;
-                    const segmentCtx = segmentCanvas.getContext('2d');
-                    if (segmentCtx) {
-                        segmentCtx.drawImage(mainCanvas, 0, yPositionInOriginalImagePx, imgOriginalWidth, sourceSegmentHeightPx, 0, 0, imgOriginalWidth, sourceSegmentHeightPx);
-                    }
-                    const segmentDataUrl = segmentCanvas.toDataURL('image/png', 0.95);
-                    let displaySegmentHeightMm = sourceSegmentHeightPx * (contentWidthInPdf / imgOriginalWidth);
-                    displaySegmentHeightMm = Math.min(displaySegmentHeightMm, contentHeightInPdf);
-                    if (displaySegmentHeightMm > 0) {
-                        pdf.addImage(segmentDataUrl, 'PNG', margin, margin, contentWidthInPdf, displaySegmentHeightMm);
-                    }
-                    yPositionInOriginalImagePx += sourceSegmentHeightPx;
-                }
-                pdf.save('AI_전략_인포그래픽_대시보드.pdf'); // 파일명 수정
-                downloadPdfBtn.style.display = 'block';
-            });
+            downloadPdfBtn.addEventListener('click', handleDownloadPdf);
         }
-
-        // 컴포넌트 언마운트 시 IntersectionObserver 해제
-        return () => {
-            document.querySelectorAll('.animate-on-scroll').forEach(el => {
-                observer.unobserve(el);
-            });
-            // Chart 인스턴스 정리 (추가할 코드 시작)
-            chartInstancesRef.current.forEach(chart => {
-                if (chart) { // 인스턴스가 유효한지 확인
-                    chart.destroy(); // Chart 인스턴스 파괴
-                }
-            });
-            chartInstancesRef.current = []; // 배열 초기화 (선택 사항이지만 권장)
-            // 추가할 코드 끝
-    };
 
         // URL 해시 기반 스크롤 로직
         const handleHashScroll = () => {
@@ -417,20 +407,28 @@ const GlobalAITrendsReportPage = () => {
         // 해시 변경 시 스크롤 로직 다시 실행 (SPA 네비게이션 고려)
         window.addEventListener('hashchange', handleHashScroll);
 
-        // 컴포넌트 언마운트 시 이벤트 리스너 해제
+        // 컴포넌트 언마운트 시 모든 정리 작업 수행 (단일 cleanup 함수)
         return () => {
+            // IntersectionObserver 해제
             document.querySelectorAll('.animate-on-scroll').forEach(el => {
                 observer.unobserve(el);
             });
-            window.removeEventListener('hashchange', handleHashScroll); // 이벤트 리스너 해제
-            // Chart 인스턴스 정리 (추가할 코드 시작)
+
+            // Chart 인스턴스 정리
             chartInstancesRef.current.forEach(chart => {
-                if (chart) { // 인스턴스가 유효한지 확인
-                    chart.destroy(); // Chart 인스턴스 파괴
+                if (chart) {
+                    chart.destroy();
                 }
             });
-            chartInstancesRef.current = []; // 배열 초기화 (선택 사항이지만 권장)
-            // 추가할 코드 끝
+            chartInstancesRef.current = [];
+
+            // 해시 변경 이벤트 리스너 해제
+            window.removeEventListener('hashchange', handleHashScroll);
+
+            // PDF 다운로드 이벤트 리스너 해제
+            if (downloadPdfBtn) {
+                downloadPdfBtn.removeEventListener('click', handleDownloadPdf);
+            }
         };
     }, []); // 빈 배열을 전달하여 컴포넌트 마운트 시 한 번만 실행
 
@@ -445,7 +443,7 @@ const GlobalAITrendsReportPage = () => {
             <div className="p-4 md:p-8" style={{ paddingTop: '80px' }}>
                 <div className="container mx-auto max-w-7xl" id="infographicsContent" ref={infographicsContentRef}>
                     <header className="text-center mb-16 animate-on-scroll animate-fade-in">
-                        <h1 className="text-5xl font-bold mb-4 text-gray-800">AI 전략 보고서: <span className="text-blue-600">인터랙티브 대시보드</span></h1>
+                        <h1 className="text-5xl font-bold mb-4 text-gray-800">AI 전략 보고서: <span className="text-blue-600">Global AI Trend Report</span></h1>
                         <p className="text-xl text-gray-600">"프론티어 기업 전략 심층 분석 보고서" 핵심 인사이트 시각화</p>
                     </header>
 
@@ -455,220 +453,227 @@ const GlobalAITrendsReportPage = () => {
                         </Button>
                     </div>
 
-                    <section className="mb-16">
+                    <section id="global-ai-market" className="mb-16"> {/* "글로벌 AI시동 동향 및 전망" 시작 */}
                         <h2 className="text-4xl font-bold mb-10 text-gray-900 text-center animate-on-scroll animate-fade-in">글로벌 AI 시장 동향 및 전망</h2>
-                        <div className="grid md:grid-cols-3 gap-6">
-                            {/* 차트 컨테이너 - 클라이언트 컴포넌트에서 차트 렌더링 */}
-                            <div className="card-base chart-container animate-on-scroll animate-fade-in" style={{ animationDelay: '0.1s' }}>
-                                <h3 className="text-lg font-semibold mb-2 text-gray-900 text-center">"AI at Work" 시장</h3>
-                                <canvas id="aiAtWorkMarketChart" style={{ maxHeight: '240px' }}></canvas>
-                                <p className="text-xs text-gray-600 text-center mt-1">출처: The Business Research Company (보고서 기반)</p>
+                        <div className="card-base p-6 animate-on-scroll animate-fade-in"> {/* 이 div가 새로 추가되고 클래스가 적용됩니다 */}
+                            <div className="grid md:grid-cols-3 gap-6">
+                                {/* 차트 컨테이너 - 클라이언트 컴포넌트에서 차트 렌더링 */}
+                                <div className="chart-container animate-on-scroll animate-fade-in" style={{ animationDelay: '0.1s' }}>
+                                    <h3 className="text-lg font-semibold mb-2 text-gray-900 text-center">"AI at Work" 시장</h3>
+                                    <canvas id="aiAtWorkMarketChart" style={{ maxHeight: '240px' }}></canvas>
+                                    <p className="text-xs text-gray-600 text-center mt-1">출처: The Business Research Company (보고서 기반)</p>
+                                </div>
+                                <div className="chart-container animate-on-scroll animate-fade-in" style={{ animationDelay: '0.2s' }}>
+                                    <h3 className="text-lg font-semibold mb-2 text-gray-900 text-center">AI 에이전트 시장</h3>
+                                    <canvas id="aiAgentMarketChart" style={{ maxHeight: '240px' }}></canvas>
+                                    <p className="text-xs text-gray-600 text-center mt-1">출처: Precedence Research, MarketsandMarkets (보고서 기반)</p>
+                                </div>
+                                <div className="chart-container animate-on-scroll animate-fade-in" style={{ animationDelay: '0.3s' }}>
+                                    <h3 className="text-lg font-semibold mb-2 text-gray-900 text-center">AI 컨설팅 시장</h3>
+                                    <canvas id="aiConsultingMarketChart" style={{ maxHeight: '240px' }}></canvas>
+                                    <p className="text-xs text-gray-600 text-center mt-1">출처: Market.us, Zion Market Research (보고서 기반)</p>
+                                </div>
                             </div>
-                            <div className="card-base chart-container animate-on-scroll animate-fade-in" style={{ animationDelay: '0.2s' }}>
-                                <h3 className="text-lg font-semibold mb-2 text-gray-900 text-center">AI 에이전트 시장</h3>
-                                <canvas id="aiAgentMarketChart" style={{ maxHeight: '240px' }}></canvas>
-                                <p className="text-xs text-gray-600 text-center mt-1">출처: Precedence Research, MarketsandMarkets (보고서 기반)</p>
+                            <div className="bg-indigo-50 p-6 rounded-md mt-8 border-l-4 border-indigo-600 animate-on-scroll animate-fade-in">
+                                <h4 className="text-lg font-semibold text-indigo-800 mb-2">📈 시장 성장 핵심 메시지</h4>
+                                <p className="text-sm text-indigo-700 leading-relaxed">AI 기술이 업무 환경 전반에 걸쳐 빠르게 확산되며, 특히 AI 에이전트와 AI 컨설팅 시장은 폭발적인 성장세를 보일 것으로 전망됩니다. 이는 기업들이 단순 자동화를 넘어 지능형 업무 시스템을 적극적으로 도입하고 있음을 시사합니다.</p>
+                                <h4 className="text-lg font-semibold text-indigo-800 mt-3 mb-2">🔮 미래 업무 현장에 대한 의미와 가치</h4>
+                                <p className="text-sm text-indigo-700 leading-relaxed">이러한 성장은 AI가 미래 업무 환경의 핵심 동력임을 의미합니다. 기업은 AI를 통해 생산성 향상, 비용 절감, 새로운 비즈니스 가치 창출을 기대할 수 있습니다. 개인에게는 AI와의 협업 능력, 데이터 기반 의사결정 역량이 중요해지며, 반복 업무 감소로 창의적이고 전략적인 업무에 더 집중할 수 있는 기회가 열릴 것입니다.</p>
                             </div>
-                            <div className="card-base chart-container animate-on-scroll animate-fade-in" style={{ animationDelay: '0.3s' }}>
-                                <h3 className="text-lg font-semibold mb-2 text-gray-900 text-center">AI 컨설팅 시장</h3>
-                                <canvas id="aiConsultingMarketChart" style={{ maxHeight: '240px' }}></canvas>
-                                <p className="text-xs text-gray-600 text-center mt-1">출처: Market.us, Zion Market Research (보고서 기반)</p>
-                            </div>
-                        </div>
-                        <div className="bg-indigo-50 p-6 rounded-md mt-8 border-l-4 border-indigo-600 animate-on-scroll animate-fade-in card-base" style={{ animationDelay: '0.4s' }}>
-                            <h4 className="text-lg font-semibold text-indigo-800 mb-2">📈 시장 성장 핵심 메시지</h4>
-                            <p className="text-sm text-indigo-700 leading-relaxed">AI 기술이 업무 환경 전반에 걸쳐 빠르게 확산되며, 특히 AI 에이전트와 AI 컨설팅 시장은 폭발적인 성장세를 보일 것으로 전망됩니다. 이는 기업들이 단순 자동화를 넘어 지능형 업무 시스템을 적극적으로 도입하고 있음을 시사합니다.</p>
-                            <h4 className="text-lg font-semibold text-indigo-800 mt-3 mb-2">🔮 미래 업무 현장에 대한 의미와 가치</h4>
-                            <p className="text-sm text-indigo-700 leading-relaxed">이러한 성장은 AI가 미래 업무 환경의 핵심 동력임을 의미합니다. 기업은 AI를 통해 생산성 향상, 비용 절감, 새로운 비즈니스 가치 창출을 기대할 수 있습니다. 개인에게는 AI와의 협업 능력, 데이터 기반 의사결정 역량이 중요해지며, 반복 업무 감소로 창의적이고 전략적인 업무에 더 집중할 수 있는 기회가 열릴 것입니다.</p>
-                        </div>
+                        </div> {/* End Card container */}
                     </section>
 
-                    <section className="mb-16">
+                    <section id="new-work-paradigm" className="mb-16"> {/* "AI시대, 새로운 업무 패러다임" 시작 */}
                         <h2 className="text-4xl font-bold mb-10 text-gray-900 text-center animate-on-scroll animate-fade-in">AI 시대, 새로운 업무 패러다임</h2>
-                        <div className="grid md:grid-cols-3 gap-6">
-                            <div className="card-base concept-card group animate-on-scroll animate-fade-in" style={{ animationDelay: '0.1s' }}>
-                                <AgentBossIcon />
-                                <h3 className="text-lg font-semibold text-blue-900 mb-2">에이전트 보스 (Agent Boss)</h3>
-                                <p className="text-sm text-gray-700 leading-relaxed">모든 직원이 개인화된 AI 에이전트 팀을 지휘하고 관리하며, 업무 생산성과 전략적 영향력을 극대화하는 역할로 진화합니다. AI는 단순 보조 도구를 넘어, 각 개인의 역량을 증강시키는 핵심 파트너가 됩니다.</p>
-                                <p className="text-xs text-gray-600 mt-3 italic">예: 마케터는 데이터 분석 AI, 콘텐츠 생성 AI, 캠페인 관리 AI로 구성된 팀을 운영하여 업무 효율을 높입니다.</p>
+                        <div className="card-base p-6 animate-on-scroll animate-fade-in"> {/* 이 div가 새로 추가되고 클래스가 적용됩니다 */}
+                            <div className="grid md:grid-cols-3 gap-6">
+                                <div className="concept-card group animate-on-scroll animate-fade-in" style={{ animationDelay: '0.1s' }}> {/* 개별 카드 - card-base 클래스 제거 */}
+                                    <AgentBossIcon />
+                                    <h3 className="text-lg font-semibold text-blue-900 mb-2">에이전트 보스 (Agent Boss)</h3>
+                                    <p className="text-sm text-gray-700 leading-relaxed">모든 직원이 개인화된 AI 에이전트 팀을 지휘하고 관리하며, 업무 생산성과 전략적 영향력을 극대화하는 역할로 진화합니다. AI는 단순 보조 도구를 넘어, 각 개인의 역량을 증강시키는 핵심 파트너가 됩니다.</p>
+                                    <p className="text-xs text-gray-600 mt-3 italic">예: 마케터는 데이터 분석 AI, 콘텐츠 생성 AI, 캠페인 관리 AI로 구성된 팀을 운영하여 업무 효율을 높입니다.</p>
+                                </div>
+                                <div className="concept-card group animate-on-scroll animate-fade-in" style={{ animationDelay: '0.2s' }}> {/* 개별 카드 - card-base 클래스 제거 */}
+                                    <WorkChartIcon />
+                                    <h3 className="text-lg font-semibold text-blue-900 mb-2">작업 차트 (Work Chart)</h3>
+                                    <p className="text-sm text-gray-700 leading-relaxed">전통적인 부서 중심의 고정된 조직 구조에서 벗어나, 특정 프로젝트나 목표 달성을 위해 필요한 역량을 중심으로 유연하게 팀이 구성되고 해체됩니다. AI 에이전트는 필요한 전문 지식과 분석을 즉시 제공하여 이러한 민첩한 팀 운영을 지원합니다.</p>
+                                    <p className="text-xs text-gray-600 mt-3 italic">예: 신제품 출시 시, AI가 시장 분석을 제공하면, 마케팅, R&D, 디자인 전문가가 일시적 '작업 차트' 팀을 구성해 신속히 대응합니다. (영화 제작팀과 유사)</p>
+                                </div>
+                                <div className="concept-card group animate-on-scroll animate-fade-in" style={{ animationDelay: '0.3s' }}> {/* 개별 카드 - card-base 클래스 제거 */}
+                                    <HumanAgentRatioIcon />
+                                    <h3 className="text-lg font-semibold text-blue-900 mb-2">인간-에이전트 비율 (Human-Agent Ratio)</h3>
+                                    <p className="text-sm text-gray-700 leading-relaxed">단순히 AI 도입을 늘리는 것을 넘어, 인간의 창의성, 공감 능력과 AI의 데이터 처리, 반복 작업 효율성을 최적으로 결합하는 '인간 대 AI 에이전트'의 이상적인 비율을 찾는 것입니다. 이는 작업의 성격, 산업 특성, 조직의 AI 성숙도에 따라 달라집니다.</p>
+                                    <p className="text-xs text-gray-600 mt-3 italic">예: 고객 지원에서 단순 문의는 AI가 90% 처리, 복잡하고 감정적인 문제는 인간 상담사가 10% 개입하여 효율과 만족도를 최적화합니다.</p>
+                                </div>
                             </div>
-                            <div className="card-base concept-card group animate-on-scroll animate-fade-in" style={{ animationDelay: '0.2s' }}>
-                                <WorkChartIcon />
-                                <h3 className="text-lg font-semibold text-blue-900 mb-2">작업 차트 (Work Chart)</h3>
-                                <p className="text-sm text-gray-700 leading-relaxed">전통적인 부서 중심의 고정된 조직 구조에서 벗어나, 특정 프로젝트나 목표 달성을 위해 필요한 역량을 중심으로 유연하게 팀이 구성되고 해체됩니다. AI 에이전트는 필요한 전문 지식과 분석을 즉시 제공하여 이러한 민첩한 팀 운영을 지원합니다.</p>
-                                <p className="text-xs text-gray-600 mt-3 italic">예: 신제품 출시 시, AI가 시장 분석을 제공하면, 마케팅, R&D, 디자인 전문가가 일시적 '작업 차트' 팀을 구성해 신속히 대응합니다. (영화 제작팀과 유사)</p>
-                            </div>
-                            <div className="card-base concept-card group animate-on-scroll animate-fade-in" style={{ animationDelay: '0.3s' }}>
-                                <HumanAgentRatioIcon />
-                                <h3 className="text-lg font-semibold text-blue-900 mb-2">인간-에이전트 비율 (Human-Agent Ratio)</h3>
-                                <p className="text-sm text-gray-700 leading-relaxed">단순히 AI 도입을 늘리는 것을 넘어, 인간의 창의성, 공감 능력과 AI의 데이터 처리, 반복 작업 효율성을 최적으로 결합하는 '인간 대 AI 에이전트'의 이상적인 비율을 찾는 것입니다. 이는 작업의 성격, 산업 특성, 조직의 AI 성숙도에 따라 달라집니다.</p>
-                                <p className="text-xs text-gray-600 mt-3 italic">예: 고객 지원에서 단순 문의는 AI가 90% 처리, 복잡하고 감정적인 문제는 인간 상담사가 10% 개입하여 효율과 만족도를 최적화합니다.</p>
-                            </div>
-                        </div>
+                        </div> {/* End Card container */}
                     </section>
 
-                    <section className="mb-16">
+                    <section id="regional-trends" className="mb-16"> {/* "지역별 AI 도입 트렌드" 시작 */}
                         <h2 className="text-4xl font-bold mb-10 text-gray-900 text-center animate-on-scroll animate-fade-in">지역별 AI 도입 트렌드</h2>
-                        <div className="grid md:grid-cols-3 gap-8">
-                            <div className="card-base region-card animate-on-scroll animate-slide-in-left" style={{ animationDelay: '0.1s' }}>
-                                <div className="flex items-center mb-4">
-                                    <NorthAmericaIcon />
-                                    <h3 className="text-xl font-semibold text-gray-900">북미 (North America)</h3>
+                        <div className="card-base p-6 animate-on-scroll animate-fade-in"> {/* 이 div가 새로 추가되고 클래스가 적용됩니다 */}
+                            <div className="grid md:grid-cols-3 gap-8">
+                                <div className="region-card animate-on-scroll animate-slide-in-left" style={{ animationDelay: '0.1s' }}> {/* 개별 지역 카드 - card-base 클래스 제거 */}
+                                    <div className="flex items-center mb-4">
+                                        <NorthAmericaIcon />
+                                        <h3 className="text-xl font-semibold text-gray-900">북미 (North America)</h3>
+                                    </div>
+                                    <p className="text-sm text-gray-700 mb-1"><strong className="text-blue-700">압도적 시장 주도:</strong> "AI at Work" 및 AI 에이전트 시장에서 <strong>최대 점유율</strong> (2024년 AI 에이전트 시장의 약 41%, 22.3억 달러).</p>
+                                    <p className="text-sm text-gray-700 mb-1"><strong className="text-blue-700">혁신 생태계:</strong> Google, Microsoft 등 <strong>선도적 기술 기업</strong> 다수 포진, 견고한 디지털 인프라.</p>
+                                    <p className="text-sm text-gray-700 mb-1"><strong className="text-blue-700">AI 컨설팅 허브:</strong> 2024년 <strong>30억 달러</strong> 수익 (글로벌 점유율 36.84% 이상).</p>
+                                    <p className="text-sm text-gray-700"><strong className="text-blue-700">투자 집중:</strong> 민간 AI 투자 2024년 <strong>1091억 달러</strong>로 압도적.</p>
                                 </div>
-                                <p className="text-sm text-gray-700 mb-1"><strong className="text-blue-700">압도적 시장 주도:</strong> "AI at Work" 및 AI 에이전트 시장에서 <strong>최대 점유율</strong> (2024년 AI 에이전트 시장의 약 41%, 22.3억 달러).</p>
-                                <p className="text-sm text-gray-700 mb-1"><strong className="text-blue-700">혁신 생태계:</strong> Google, Microsoft 등 <strong>선도적 기술 기업</strong> 다수 포진, 견고한 디지털 인프라.</p>
-                                <p className="text-sm text-gray-700 mb-1"><strong className="text-blue-700">AI 컨설팅 허브:</strong> 2024년 <strong>30억 달러</strong> 수익 (글로벌 점유율 36.84% 이상).</p>
-                                <p className="text-sm text-gray-700"><strong className="text-blue-700">투자 집중:</strong> 민간 AI 투자 2024년 <strong>1091억 달러</strong>로 압도적.</p>
-                            </div>
-                            <div className="card-base region-card animate-on-scroll animate-fade-in" style={{ animationDelay: '0.2s' }}>
-                                <div className="flex items-center mb-4">
-                                    <EuropeIcon />
-                                    <h3 className="text-xl font-semibold text-gray-900">유럽 (Europe)</h3>
+                                <div className="region-card animate-on-scroll animate-fade-in" style={{ animationDelay: '0.2s' }}> {/* 개별 지역 카드 - card-base 클래스 제거 */}
+                                    <div className="flex items-center mb-4">
+                                        <EuropeIcon />
+                                        <h3 className="text-xl font-semibold text-gray-900">유럽 (Europe)</h3>
+                                    </div>
+                                    <p className="text-sm text-gray-700 mb-1"><strong className="text-green-700">빠르게 성장하는 시장:</strong> "AI at Work" 시장 전반에서 <strong>가장 빠른 성장세</strong> 예상.</p>
+                                    <p className="text-sm text-gray-700 mb-1"><strong className="text-green-700">윤리 및 규제 중시:</strong> <strong>책임감 있는 AI(Responsible AI)</strong>, 근로자 보호, EU AI Act 등 규제 준수 강조.</p>
+                                    <p className="text-sm text-gray-700 mb-1"><strong className="text-green-700">높은 AI 준비도:</strong> 노동 시장, 특히 서비스 부문 중심으로 AI 도입 준비 가속화.</p>
+                                    <p className="text-sm text-gray-700"><strong className="text-green-700">사회적 요구:</strong> AI의 사생활 보호 및 투명성 확보 요구(84%) 매우 높음.</p>
                                 </div>
-                                <p className="text-sm text-gray-700 mb-1"><strong className="text-green-700">빠르게 성장하는 시장:</strong> "AI at Work" 시장 전반에서 <strong>가장 빠른 성장세</strong> 예상.</p>
-                                <p className="text-sm text-gray-700 mb-1"><strong className="text-green-700">윤리 및 규제 중시:</strong> <strong>책임감 있는 AI(Responsible AI)</strong>, 근로자 보호, EU AI Act 등 규제 준수 강조.</p>
-                                <p className="text-sm text-gray-700 mb-1"><strong className="text-green-700">높은 AI 준비도:</strong> 노동 시장, 특히 서비스 부문 중심으로 AI 도입 준비 가속화.</p>
-                                <p className="text-sm text-gray-700"><strong className="text-green-700">사회적 요구:</strong> AI의 사생활 보호 및 투명성 확보 요구(84%) 매우 높음.</p>
-                            </div>
-                            <div className="card-base region-card animate-on-scroll animate-slide-in-right" style={{ animationDelay: '0.3s' }}>
-                                <div className="flex items-center mb-4">
-                                    <APACIcon />
-                                    <h3 className="text-xl font-semibold text-gray-900">아시아 태평양 (APAC)</h3>
+                                <div className="region-card animate-on-scroll animate-slide-in-right" style={{ animationDelay: '0.3s' }}> {/* 개별 지역 카드 - card-base 클래스 제거 */}
+                                    <div className="flex items-center mb-4">
+                                        <APACIcon />
+                                        <h3 className="text-xl font-semibold text-gray-900">아시아 태평양 (APAC)</h3>
+                                    </div>
+                                    <p className="text-sm text-gray-700 mb-1"><strong className="text-amber-600">AI 에이전트 폭발적 성장:</strong> AI 에이전트 시장에서 <strong>연평균 성장률(CAGR) 최고</strong> 예상.</p>
+                                    <p className="text-sm text-gray-700 mb-1"><strong className="text-amber-600">선도적인 리더십:</strong> 리더의 <strong>53%</strong>가 이미 AI 에이전트를 완전 자동화에 사용 (글로벌 평균보다 7% 높음).</p>
+                                    <p className="text-sm text-gray-700 mb-1"><strong className="text-amber-600">AI를 협업 파트너로 인식:</strong> 직원들은 AI를 단순 도구(47%)보다 <strong>사고 파트너(52%)</strong>로 인식.</p>
+                                    <p className="text-sm text-gray-700"><strong className="text-amber-600">역량 위기 직면:</strong> 인력의 84%가 업무 시간/에너지 부족 호소, AI 통한 해결 필요.</p>
                                 </div>
-                                <p className="text-sm text-gray-700 mb-1"><strong className="text-amber-600">AI 에이전트 폭발적 성장:</strong> AI 에이전트 시장에서 <strong>연평균 성장률(CAGR) 최고</strong> 예상.</p>
-                                <p className="text-sm text-gray-700 mb-1"><strong className="text-amber-600">선도적인 리더십:</strong> 리더의 <strong>53%</strong>가 이미 AI 에이전트를 완전 자동화에 사용 (글로벌 평균보다 7% 높음).</p>
-                                <p className="text-sm text-gray-700 mb-1"><strong className="text-amber-600">AI를 협업 파트너로 인식:</strong> 직원들은 AI를 단순 도구(47%)보다 <strong>사고 파트너(52%)</strong>로 인식.</p>
-                                <p className="text-sm text-gray-700"><strong className="text-amber-600">역량 위기 직면:</strong> 인력의 84%가 업무 시간/에너지 부족 호소, AI 통한 해결 필요.</p>
                             </div>
-                        </div>
+                        </div> {/* End Card container */}
                     </section>
 
-                    <section className="mb-16"> {/* "산업별 AI 도입 동향 및 전망" 시작 */}
+                   <section id="industry-trends" className="mb-16"> {/* "산업별 AI 도입 동향 및 전망" 시작 */}
                         <h2 className="text-4xl font-bold mb-10 text-gray-900 text-center animate-on-scroll animate-fade-in">산업별 AI 도입 동향 및 전망</h2>
-
-                        <div className="card-base mb-8 animate-on-scroll animate-fade-in"> {/* 제조업 시작 */}
-                            <div className="flex items-center mb-4">
-                                <ManufacturingIcon />
-                                <h3 className="text-2xl font-semibold text-emerald-800">제조업 (Manufacturing)</h3>
-                            </div>
-                            <div className="grid md:grid-cols-2 gap-6 items-center">
-                                <div className="manufacturing-donut-container flex flex-col items-center justify-center" style={{ height: 300 }}>
-                                     <canvas id="manufacturingAiAdoptionChart"></canvas>
+                        <div className="animate-on-scroll animate-fade-in"> {/* 이 div가 새로 추가되고 클래스가 적용됩니다 */}
+                            <div className="card-base mb-8 animate-on-scroll animate-fade-in"> {/* 제조업 시작 - card-base 클래스 제거 */}
+                                <div className="flex items-center mb-4">
+                                    <ManufacturingIcon />
+                                    <h3 className="text-2xl font-semibold text-emerald-800">제조업 (Manufacturing)</h3>
                                 </div>
-                                <div className="manufacturing-description text-gray-700">
-                                    <h4 className="text-lg font-semibold text-emerald-800 mb-3">주요 AI 적용 분야 및 효과</h4>
-                                    <div className="flex items-start mb-3">
-                                        <PredictionIcon />
-                                        <p className="text-sm leading-relaxed"><strong className="text-emerald-700">예측 유지보수:</strong> Siemens, 발전소 정전 <strong>25% 감소</strong>, 연간 <strong>7.5억 달러</strong> 비용 절감.</p>
+                                <div className="grid md:grid-cols-2 gap-6 items-center">
+                                    <div className="manufacturing-donut-container flex flex-col items-center justify-center" style={{ height: 300 }}>
+                                        <canvas id="manufacturingAiAdoptionChart"></canvas>
                                     </div>
-                                    <div className="flex items-start mb-3">
-                                        <AutomationIcon />
-                                        <p className="text-sm leading-relaxed"><strong className="text-emerald-700">공정 자동화:</strong> KG Steel, 자율 제어 에이전트로 LNG 소비 약 <strong>2% 절감</strong>, 품질 편차 감소.</p>
+                                    <div className="manufacturing-description text-gray-700">
+                                        <h4 className="text-lg font-semibold text-emerald-800 mb-3">주요 AI 적용 분야 및 효과</h4>
+                                        <div className="flex items-start mb-3">
+                                            <PredictionIcon />
+                                            <p className="text-sm leading-relaxed"><strong className="text-emerald-700">예측 유지보수:</strong> Siemens, 발전소 정전 <strong>25% 감소</strong>, 연간 <strong>7.5억 달러</strong> 비용 절감.</p>
+                                        </div>
+                                        <div className="flex items-start mb-3">
+                                            <AutomationIcon />
+                                            <p className="text-sm leading-relaxed"><strong className="text-emerald-700">공정 자동화:</strong> KG Steel, 자율 제어 에이전트로 LNG 소비 약 <strong>2% 절감</strong>, 품질 편차 감소.</p>
+                                        </div>
+                                        <div className="flex items-start mb-3">
+                                            <QualityIcon />
+                                            <p className="text-sm leading-relaxed"><strong className="text-emerald-700">품질 관리:</strong> AI 기반 시각 검사, 결함 감지 정확도 향상.</p>
+                                        </div>
+                                        <h4 className="text-lg font-semibold text-emerald-800 mt-4 mb-3">주요 도전 과제</h4>
+                                        <div className="flex items-start">
+                                            <ChallengeIcon />
+                                            <p className="text-sm leading-relaxed">사이버 보안(60%), 도입 비용(46%), 직원 우려(42%), 기존 시스템 통합.</p>
+                                        </div>
                                     </div>
-                                    <div className="flex items-start mb-3">
-                                        <QualityIcon />
-                                        <p className="text-sm leading-relaxed"><strong className="text-emerald-700">품질 관리:</strong> AI 기반 시각 검사, 결함 감지 정확도 향상.</p>
+                                </div>
+                            </div> {/* 제조업 끝 */}
+
+                            <div className="card-base mb-8 animate-on-scroll animate-fade-in"> {/* 금융 서비스 시작 - card-base 클래스 제거 */}
+                                <div className="flex items-center mb-4">
+                                    <FinancialIcon />
+                                    <h3 className="text-2xl font-semibold text-blue-800">금융 서비스 (Financial Services)</h3>
+                                </div>
+                                <div className="grid md:grid-cols-3 gap-6 items-center">
+                                    <div className="flex flex-col items-center justify-center text-center p-4 bg-gray-50 rounded-md">
+                                        <svg className="text-blue-600 w-16 h-16 mb-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h2v-5zm6-10H7v15h2V9h2V4zm6 3h-2v10h2V7z"></path><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"></path></svg>
+                                        <p className="text-sm text-gray-700 font-medium">2023년 AI 투자액</p>
+                                        <p className="text-xl text-gray-900 font-semibold">$350억</p>
+                                        <p className="text-sm text-gray-700 mt-2">2027년 예상 투자액: $970억</p>
                                     </div>
-                                    <h4 className="text-lg font-semibold text-emerald-800 mt-4 mb-3">주요 도전 과제</h4>
-                                    <div className="flex items-start">
-                                        <ChallengeIcon />
-                                        <p className="text-sm leading-relaxed">사이버 보안(60%), 도입 비용(46%), 직원 우려(42%), 기존 시스템 통합.</p>
+                                    <div className="md:col-span-2 text-gray-700">
+                                        <h4 className="text-lg font-semibold text-blue-800 mb-2">주요 AI 적용 분야</h4>
+                                        <ul className="list-disc list-inside space-y-1 text-sm leading-relaxed pl-2">
+                                            <li><strong className="text-blue-700">리스크 관리 및 사기 탐지:</strong> AI 기반 실시간 이상 거래 감지, 신용 평가 모델 고도화. (예: Bank of America 'Erica' - 수익 19% 급증 기여)</li>
+                                            <li><strong className="text-blue-700">고객 분석 및 초개인화 서비스:</strong> 맞춤형 금융 상품 추천, 로보 어드바이저.</li>
+                                            <li><strong className="text-blue-700">알고리즘 트레이딩 및 투자 분석:</strong> 시장 데이터 분석 기반 자동 거래 시스템.</li>
+                                        </ul>
+                                        <h4 className="text-lg font-semibold text-blue-800 mt-3 mb-2">주요 도전 과제</h4>
+                                        <ul className="list-disc list-inside space-y-1 text-sm leading-relaxed pl-2">
+                                            <li>데이터 투명성 및 개인 정보 보호 (규제 준수).</li>
+                                            <li>AI 모델의 편향성 및 공정성 확보.</li>
+                                            <li>사이버 보안 위협 및 금융 사기 수법 진화 대응.</li>
+                                        </ul>
                                     </div>
                                 </div>
-                            </div>
-                        </div> {/* 제조업 끝 */}
+                            </div> {/* 금융 서비스 끝 */}
 
-                        <div className="card-base mb-8 animate-on-scroll animate-fade-in"> {/* 금융 서비스 시작 */}
-                            <div className="flex items-center mb-4">
-                                <FinancialIcon />
-                                <h3 className="text-2xl font-semibold text-blue-800">금융 서비스 (Financial Services)</h3>
-                            </div>
-                            <div className="grid md:grid-cols-3 gap-6 items-center">
-                                <div className="flex flex-col items-center justify-center text-center p-4 bg-gray-50 rounded-md">
-                                    <svg className="text-blue-600 w-16 h-16 mb-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h2v-5zm6-10H7v15h2V9h2V4zm6 3h-2v10h2V7z"></path><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"></path></svg>
-                                    <p className="text-sm text-gray-700 font-medium">2023년 AI 투자액</p>
-                                    <p className="text-xl text-gray-900 font-semibold">$350억</p>
-                                    <p className="text-sm text-gray-700 mt-2">2027년 예상 투자액: $970억</p>
+                            <div className="card-base mb-8 animate-on-scroll animate-fade-in"> {/* 유통 및 이커머스 시작 - card-base 클래스 제거 */}
+                                <div className="flex items-center mb-4">
+                                    <RetailIcon />
+                                    <h3 className="text-2xl font-semibold text-purple-800">유통 및 이커머스 (Retail & E-commerce)</h3>
                                 </div>
-                                <div className="md:col-span-2 text-gray-700">
-                                    <h4 className="text-lg font-semibold text-blue-800 mb-2">주요 AI 적용 분야</h4>
-                                    <ul className="list-disc list-inside space-y-1 text-sm leading-relaxed pl-2">
-                                        <li><strong className="text-blue-700">리스크 관리 및 사기 탐지:</strong> AI 기반 실시간 이상 거래 감지, 신용 평가 모델 고도화. (예: Bank of America 'Erica' - 수익 19% 급증 기여)</li>
-                                        <li><strong className="text-blue-700">고객 분석 및 초개인화 서비스:</strong> 맞춤형 금융 상품 추천, 로보 어드바이저.</li>
-                                        <li><strong className="text-blue-700">알고리즘 트레이딩 및 투자 분석:</strong> 시장 데이터 분석 기반 자동 거래 시스템.</li>
-                                    </ul>
-                                    <h4 className="text-lg font-semibold text-blue-800 mt-3 mb-2">주요 도전 과제</h4>
-                                    <ul className="list-disc list-inside space-y-1 text-sm leading-relaxed pl-2">
-                                        <li>데이터 투명성 및 개인 정보 보호 (규제 준수).</li>
-                                        <li>AI 모델의 편향성 및 공정성 확보.</li>
-                                        <li>사이버 보안 위협 및 금융 사기 수법 진화 대응.</li>
-                                    </ul>
+                                <div className="grid md:grid-cols-3 gap-6 items-center">
+                                    <div className="flex flex-col items-center justify-center text-center p-4 bg-gray-50 rounded-md">
+                                        <svg className="text-purple-600 w-16 h-16 mb-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-1.99.9-1.99 2S15.9 22 17 22s2-.9 2-2-.9-2-2-2zm-1.45-5L17.97 6.96A.748.748 0 0 0 17.27 6H4.83c-.62 0-1.15.43-1.29.96L1 13h12v-2H4.43l2-4h9.14l-2.62 5H8.55c-.45 0-.67.54-.35.85l3.65 3.65c.19.19.51.19.7 0l6.15-6.15c.32-.31.1-.85-.35-.85h-2.55Z"></path></svg>
+                                        <p className="text-sm text-gray-700 font-medium">Amazon AI 추천 시스템</p>
+                                        <p className="text-xl text-gray-900 font-semibold">매출의 35%</p>
+                                        <p className="text-sm text-gray-700 mt-2">기여 (보고서 인용)</p>
+                                    </div>
+                                    <div className="md:col-span-2 text-gray-700">
+                                        <h4 className="text-lg font-semibold text-purple-800 mb-2">주요 AI 적용 분야</h4>
+                                        <ul className="list-disc list-inside space-y-1 text-sm leading-relaxed pl-2">
+                                            <li><strong className="text-purple-700">초개인화 추천 시스템:</strong> 고객 행동 분석 기반 상품 추천.</li>
+                                            <li><strong className="text-purple-700">수요 예측 및 재고 관리:</strong> AI 기반 판매량 예측으로 재고 최적화.</li>
+                                            <li><strong className="text-purple-700">고객 서비스 자동화:</strong> AI 챗봇, 가상 비서를 통한 24/7 고객 응대.</li>
+                                        </ul>
+                                        <h4 className="text-lg font-semibold text-purple-800 mt-3 mb-2">주요 도전 과제</h4>
+                                        <ul className="list-disc list-inside space-y-1 text-sm leading-relaxed pl-2">
+                                            <li>높은 AI 도입 및 유지보수 비용.</li>
+                                            <li>고객 데이터 프라이버시 보호.</li>
+                                            <li>기존 시스템(POS, SCM 등)과의 복잡한 통합.</li>
+                                        </ul>
+                                    </div>
                                 </div>
-                            </div>
-                        </div> {/* 금융 서비스 끝 */}
+                            </div> {/* 유통 및 이커머스 끝 */}
 
-                        <div className="card-base mb-8 animate-on-scroll animate-fade-in"> {/* 유통 및 이커머스 시작 */}
-                            <div className="flex items-center mb-4">
-                                <RetailIcon />
-                                <h3 className="text-2xl font-semibold text-purple-800">유통 및 이커머스 (Retail & E-commerce)</h3>
-                            </div>
-                            <div className="grid md:grid-cols-3 gap-6 items-center">
-                                <div className="flex flex-col items-center justify-center text-center p-4 bg-gray-50 rounded-md">
-                                    <svg className="text-purple-600 w-16 h-16 mb-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-1.99.9-1.99 2S15.9 22 17 22s2-.9 2-2-.9-2-2-2zm-1.45-5L17.97 6.96A.748.748 0 0 0 17.27 6H4.83c-.62 0-1.15.43-1.29.96L1 13h12v-2H4.43l2-4h9.14l-2.62 5H8.55c-.45 0-.67.54-.35.85l3.65 3.65c.19.19.51.19.7 0l6.15-6.15c.32-.31.1-.85-.35-.85h-2.55Z"></path></svg>
-                                    <p className="text-sm text-gray-700 font-medium">Amazon AI 추천 시스템</p>
-                                    <p className="text-xl text-gray-900 font-semibold">매출의 35%</p>
-                                    <p className="text-sm text-gray-700 mt-2">기여 (보고서 인용)</p>
+                            <div className="card-base animate-on-scroll animate-fade-in"> {/* IT 및 통신 시작 - card-base 클래스 제거 */}
+                                <div className="flex items-center mb-4">
+                                    <ITTelecomIcon />
+                                    <h3 className="text-2xl font-semibold text-sky-800">IT 및 통신 (IT & Telecommunications)</h3>
                                 </div>
-                                <div className="md:col-span-2 text-gray-700">
-                                    <h4 className="text-lg font-semibold text-purple-800 mb-2">주요 AI 적용 분야</h4>
-                                    <ul className="list-disc list-inside space-y-1 text-sm leading-relaxed pl-2">
-                                        <li><strong className="text-purple-700">초개인화 추천 시스템:</strong> 고객 행동 분석 기반 상품 추천.</li>
-                                        <li><strong className="text-purple-700">수요 예측 및 재고 관리:</strong> AI 기반 판매량 예측으로 재고 최적화.</li>
-                                        <li><strong className="text-purple-700">고객 서비스 자동화:</strong> AI 챗봇, 가상 비서를 통한 24/7 고객 응대.</li>
-                                    </ul>
-                                    <h4 className="text-lg font-semibold text-purple-800 mt-3 mb-2">주요 도전 과제</h4>
-                                    <ul className="list-disc list-inside space-y-1 text-sm leading-relaxed pl-2">
-                                        <li>높은 AI 도입 및 유지보수 비용.</li>
-                                        <li>고객 데이터 프라이버시 보호.</li>
-                                        <li>기존 시스템(POS, SCM 등)과의 복잡한 통합.</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div> {/* 유통 및 이커머스 끝 */}
+                                <section className="grid md:grid-cols-3 gap-6 items-center">
+                                    <div className="flex flex-col items-center justify-center text-center p-4 bg-gray-50 rounded-md">
+                                        <svg className="text-sky-600 w-16 h-16 mb-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13 7h-2v2h2V7zm0 4h-2v6h2v-6zm4-9.99L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"></path></svg>
+                                        <p className="text-sm text-gray-700 font-medium">AT&T Azure OpenAI 활용</p>
+                                        <p className="text-xl text-gray-900 font-semibold">IT 업무 자동화</p>
+                                        <p className="text-sm text-gray-700 mt-2">HR 직원 문의 응대 시스템 구축</p>
+                                    </div>
+                                    <div className="md:col-span-2 text-gray-700">
+                                        <h4 className="text-lg font-semibold text-sky-800 mb-2">주요 AI 적용 분야</h4>
+                                        <ul className="list-disc list-inside space-y-1 text-sm leading-relaxed pl-2">
+                                            <li><strong className="text-sky-700">네트워크 최적화 및 장애 예측:</strong> AI 기반 트래픽 분석, 장애 사전 감지.</li>
+                                            <li><strong className="text-sky-700">사이버 보안 강화:</strong> AI 기반 위협 탐지, 자동화된 보안 대응 (AIOps).</li>
+                                            <li><strong className="text-sky-700">IT 서비스 데스크 자동화:</strong> 내부 직원 문의 응대, 기술 지원 자동화.</li>
+                                        </ul>
+                                        <h4 className="text-lg font-semibold text-sky-800 mt-3 mb-2">주요 도전 과제</h4>
+                                        <ul className="list-disc list-inside space-y-1 text-sm leading-relaxed pl-2">
+                                            <li>레거시 IT 인프라와의 AI 솔루션 통합.</li>
+                                            <li>방대한 네트워크 데이터의 효과적인 처리 및 보안.</li>
+                                            <li>고도로 숙련된 AI 전문가 확보 및 유지.</li>
+                                        </ul>
+                                    </div>
+                                </section>
+                            </div> {/* IT 및 통신 끝 */}
+                        </div> {/* End Card container */}
+                    </section>
 
-                        <div className="card-base animate-on-scroll animate-fade-in"> {/* IT 및 통신 시작 */}
-                            <div className="flex items-center mb-4">
-                                <ITTelecomIcon />
-                                <h3 className="text-2xl font-semibold text-sky-800">IT 및 통신 (IT & Telecommunications)</h3>
-                            </div>
-                            <section className="grid md:grid-cols-3 gap-6 items-center">
-                                <div className="flex flex-col items-center justify-center text-center p-4 bg-gray-50 rounded-md">
-                                    <svg className="text-sky-600 w-16 h-16 mb-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13 7h-2v2h2V7zm0 4h-2v6h2v-6zm4-9.99L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"></path></svg>
-                                    <p className="text-sm text-gray-700 font-medium">AT&T Azure OpenAI 활용</p>
-                                    <p className="text-xl text-gray-900 font-semibold">IT 업무 자동화</p>
-                                    <p className="text-sm text-gray-700 mt-2">HR 직원 문의 응대 시스템 구축</p>
-                                </div>
-                                <div className="md:col-span-2 text-gray-700">
-                                    <h4 className="text-lg font-semibold text-sky-800 mb-2">주요 AI 적용 분야</h4>
-                                    <ul className="list-disc list-inside space-y-1 text-sm leading-relaxed pl-2">
-                                        <li><strong className="text-sky-700">네트워크 최적화 및 장애 예측:</strong> AI 기반 트래픽 분석, 장애 사전 감지.</li>
-                                        <li><strong className="text-sky-700">사이버 보안 강화:</strong> AI 기반 위협 탐지, 자동화된 보안 대응 (AIOps).</li>
-                                        <li><strong className="text-sky-700">IT 서비스 데스크 자동화:</strong> 내부 직원 문의 응대, 기술 지원 자동화.</li>
-                                    </ul>
-                                    <h4 className="text-lg font-semibold text-sky-800 mt-3 mb-2">주요 도전 과제</h4>
-                                    <ul className="list-disc list-inside space-y-1 text-sm leading-relaxed pl-2">
-                                        <li>레거시 IT 인프라와의 AI 솔루션 통합.</li>
-                                        <li>방대한 네트워크 데이터의 효과적인 처리 및 보안.</li>
-                                        <li>고도로 숙련된 AI 전문가 확보 및 유지.</li>
-                                    </ul>
-                                </div>
-                            </section>
-                        </div> {/* IT 및 통신 끝 - 수정된 부분: div 태그 닫음 */}
-                    </section> {/* "산업별 AI 도입 동향 및 전망" 끝 - 수정된 부분: section 태그 닫음 */}
-
-                    <section className="mb-16"> {/* "프론티어 기업" 섹션 시작 */}
+                    <section id="frontier-companies" className="mb-16"> {/* "프론티어 기업" 섹션 시작 */}
                         <h2 className="text-4xl font-bold mb-10 text-gray-900 text-center animate-on-scroll animate-fade-in">"프론티어 기업"의 부상과 특징</h2>
-                        <section className="card-base p-8 animate-on-scroll animate-fade-in">
+                        <div className="card-base p-8 animate-on-scroll animate-fade-in"> {/* 섹션 콘텐츠 컨테이너 (기존과 동일) */}
                             <div className="flex flex-col md:flex-row items-center gap-8 mb-8">
                                 <div className="md:w-1/3 flex justify-center items-center mb-6 md:mb-0">
                                     <FrontierIcon />
@@ -680,7 +685,7 @@ const GlobalAITrendsReportPage = () => {
                             </div>
 
                             <div className="grid md:grid-cols-2 gap-6">
-                                <div className="bg-sky-50 border border-sky-200 p-6 rounded-md transition duration-300 ease-in-out hover:bg-gray-100 animate-on-scroll animate-slide-in-left card-base">
+                                <div className="bg-sky-50 border border-sky-200 p-6 rounded-md shadow-lg mb-8 transition duration-300 ease-in-out hover:bg-gray-100 animate-on-scroll animate-slide-in-left"> {/* 개별 특징 카드 - card-base 클래스 제거 */}
                                     <h3 className="text-xl font-semibold text-sky-800 flex items-center mb-3">
                                         <InfoIcon />
                                         주요 특징
@@ -693,7 +698,7 @@ const GlobalAITrendsReportPage = () => {
                                         <li>데이터 기반 의사결정 문화 정착</li>
                                     </ul>
                                 </div>
-                                <div className="bg-emerald-50 border border-emerald-200 p-6 rounded-md transition duration-300 ease-in-out hover:bg-gray-100 animate-on-scroll animate-slide-in-right card-base">
+                                <div className="bg-emerald-50 border border-emerald-200 p-6 rounded-md shadow-lg mb-8 transition duration-300 ease-in-out hover:bg-gray-100 animate-on-scroll animate-slide-in-right"> {/* 개별 이점 카드 - card-base 클래스 제거 */}
                                     <h3 className="text-xl font-semibold text-emerald-800 flex items-center mb-3">
                                         <CheckIcon />
                                         핵심 이점
@@ -719,7 +724,7 @@ const GlobalAITrendsReportPage = () => {
                                     <li><strong>Siemens:</strong> 예측 유지보수 AI를 통해 발전소 정전 25% 감소 및 비용 절감.</li>
                                 </ul>
                             </div>
-                        </section>
+                        </div> {/* End Card container */}
                     </section>
                 </div>
             </div>

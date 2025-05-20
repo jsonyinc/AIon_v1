@@ -83,14 +83,14 @@ export default function Header() {
             </Link>
 
             {/* 블로그 드롭다운 메뉴 */}
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <button className="text-xl font-bold px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors flex items-center">
                   블로그
                   <ChevronDown className="ml-1 h-4 w-4" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" className="w-48">
+              <DropdownMenuContent align="end" sideOffset={5} className="w-48">
                 <DropdownMenuItem asChild>
                   <Link href="/blog" className="cursor-pointer text-lg font-semibold">
                     전체 글
