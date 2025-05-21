@@ -1,102 +1,231 @@
 "use client"
 
-import { useState, useEffect } from "react" // useEffect 추가
-import Link from "next/link"
-import Image from "next/image"
-import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Search, Calendar, User, Tag, ArrowRight, Clock } from "lucide-react"
-import Header from "@/components/header"
-import { supabase } from "@/lib/supabaseClient" // Supabase 클라이언트 임포트
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Search, Calendar, User, Tag, ArrowRight, Clock } from "lucide-react";
+import Header from "@/components/header";
+import { supabase } from "@/lib/supabaseClient";
 
 // 블로그 카테고리 데이터 (Supabase 데이터 기반으로 업데이트 필요)
-const categories = [
-  { id: "all", name: "전체 글", count: 0 }, // 초기 카운트 0
-  { id: "ai-trend", name: "AI 트렌드", count: 0 },
-  { id: "case-study", name: "성공 사례", count: 0 },
-  { id: "tech", name: "기술 블로그", count: 0 },
-  { id: "news", name: "뉴스", count: 0 },
-]
+// const categories = [
+//   { id: "all", name: "전체 글", count: 0 }, // 초기 카운트 0
+//   { id: "ai-trend", name: "AI 트렌드", count: 0 },
+//   { id: "case-study", name: "성공 사례", count: 0 },
+//   { id: "tech", name: "기술 블로그", count: 0 },
+//   { id: "news", name: "뉴스", count: 0 },
+// ];
 
 // 인기 태그 데이터 (Supabase 데이터 기반으로 업데이트 필요)
-const popularTags = [
-  { id: "ai", name: "AI", count: 0 }, // 초기 카운트 0
-  { id: "agent-boss", name: "에이전트 보스", count: 0 },
-  { id: "romi", name: "Romi", count: 0 },
-  { id: "business", name: "비즈니스", count: 0 },
-  { id: "innovation", name: "혁신", count: 0 },
-  { id: "future", name: "미래", count: 0 },
-  { id: "technology", name: "기술", count: 0 },
-]
+// const popularTags = [
+//   { id: "ai", name: "AI", count: 0 }, // 초기 카운트 0
+//   { id: "agent-boss", name: "에이전트 보스", count: 0 },
+//   { id: "romi", name: "Romi", count: 0 },
+//   { id: "business", name: "비즈니스", count: 0 },
+//   { id: "innovation", name: "혁신", count: 0 },
+//   { id: "future", name: "미래", count: 0 },
+//   { id: "technology", name: "기술", count: 0 },
+// ];
 
-// 블로그 포스트 데이터 타입 정의
+// 블로그 포스트 데이터 타입 정의 (Supabase 스키마에 맞게 수정)
 interface BlogPost {
   id: string; // Supabase UUID는 string
   created_at: string;
   title: string;
   content: string; // 상세 페이지에서 사용될 수 있음
-  category: string | null;
-  // Supabase 스키마에 현재 없는 필드들은 임시로 추가
-  summary: string;
-  image: string;
-  author: string;
-  readTime: string;
-  tags: string[];
-  date: string; // 임시 date 필드 추가
+  summary: string | null; // summary 필드 추가
+  image_url: string | null; // image_url 필드 추가
+  published_at: string | null; // published_at 필드 추가
+  read_time: string | null; // read_time 필드 추가
+  author: { // authors 테이블 조인 결과
+    id: string;
+    name: string;
+    image_url: string | null;
+    role: string | null;
+  } | null;
+  category: { // categories 테이블 조인 결과
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
+  tags: { // post_tags 및 tags 테이블 조인 결과
+    id: string;
+    name: string;
+    slug: string;
+  }[];
+  likes_count: number; // 좋아요 수 (likes 테이블 카운트)
+  comments_count: number; // 댓글 수 (comments 테이블 카운트)
 }
 
-
 export default function BlogPage() {
-  const [activeCategory, setActiveCategory] = useState("all")
-  const [searchQuery, setSearchQuery] = useState("")
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]); // Supabase에서 가져올 데이터 상태
+  const [categoriesData, setCategoriesData] = useState<{ id: string; name: string; slug: string; count: number }[]>([]); // 카테고리 데이터 상태
+  const [popularTagsData, setPopularTagsData] = useState<{ id: string; name: string; slug: string; count: number }[]>([]); // 인기 태그 데이터 상태
   const [loading, setLoading] = useState(true); // 로딩 상태
 
   useEffect(() => {
-    const fetchPosts = async () => {
+    const fetchData = async () => {
       setLoading(true);
-      let query = supabase.from('posts').select('*');
+
+      // 1. 블로그 게시물 데이터 가져오기 (JOIN 활용)
+      let postsQuery = supabase
+        .from('posts')
+        .select(`
+          id,
+          created_at,
+          title,
+          content,
+          summary,
+          image_url,
+          published_at,
+          read_time,
+          author:author_id ( id, name, image_url, role ),
+          category:category_id ( id, name, slug ),
+          tags:post_tags ( tag:tag_id ( id, name, slug ) ),
+          likes_count:likes(count),
+          comments_count:comments(count)
+        `);
 
       // 카테고리 필터링
       if (activeCategory !== 'all') {
-        query = query.eq('category', activeCategory);
+        // category_id를 기준으로 필터링
+        const { data: categoryData, error: categoryError } = await supabase
+          .from('categories')
+          .select('id')
+          .eq('slug', activeCategory)
+          .single();
+
+        if (categoryError || !categoryData) {
+          console.error('Error fetching category ID:', categoryError);
+          // 특정 카테고리를 찾지 못한 경우 게시글 없음 처리
+          setBlogPosts([]);
+          setLoading(false);
+          return;
+        }
+        postsQuery = postsQuery.eq('category_id', categoryData.id);
       }
 
-      // 검색어 필터링 (Supabase에서 Full-Text Search를 설정하지 않았다면 클라이언트에서 필터링)
-      // 여기서는 일단 클라이언트에서 필터링하는 것으로 구현
-      const { data, error } = await query.order('created_at', { ascending: false });
+      // published_at 기준으로 정렬 (최신 글 먼저)
+      postsQuery = postsQuery.order('published_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching posts:', error);
+      const { data: postsData, error: postsError } = await postsQuery;
+
+      if (postsError) {
+        console.error('Error fetching posts:', postsError);
         setBlogPosts([]);
       } else {
-        // Supabase에서 가져온 데이터에 summary, image, author, readTime, tags 필드가 없으므로 임시로 추가하거나 스키마 업데이트 필요
-        // 현재는 title, content, category, created_at만 사용 가능
-        const postsWithDefaults = data.map(post => ({
-            ...post,
-            summary: post.content ? post.content.substring(0, 150) + '...' : '내용 없음', // content의 일부를 summary로 사용
-            image: "/placeholder.svg", // 임시 이미지
-            author: "작성자 미상", // 임시 작성자
-            readTime: "N분", // 임시 읽는 시간
-            tags: post.category ? [post.category] : [], // 카테고리를 태그로 사용
-            date: new Date(post.created_at).toLocaleDateString('ko-KR'), // created_at을 날짜 형식으로 변환
-        }));
-        setBlogPosts(postsWithDefaults as BlogPost[]); // 타입 단언
+        // 가져온 데이터 구조를 BlogPost 타입에 맞게 변환 및 타입 단언
+        const formattedPosts: BlogPost[] = postsData.map((post: any) => ({ // post에 any 타입 단언
+          id: post.id,
+          created_at: post.created_at,
+          title: post.title,
+          content: post.content,
+          summary: post.summary,
+          image_url: post.image_url,
+          published_at: post.published_at,
+          read_time: post.read_time,
+          author: post.author ? {
+            id: post.author.id,
+            name: post.author.name,
+            image_url: post.author.image_url,
+            role: post.author.role,
+          } : null,
+          category: post.category ? {
+            id: post.category.id,
+            name: post.category.name,
+            slug: post.category.slug,
+          } : null,
+          tags: post.tags.map((tagRelation: any) => ({ // post_tags 조인 결과 처리
+            id: tagRelation.tag.id,
+            name: tagRelation.tag.name,
+            slug: tagRelation.tag.slug,
+          })),
+          likes_count: post.likes_count ? post.likes_count[0].count : 0, // 좋아요 수 처리
+          comments_count: post.comments_count ? post.comments_count[0].count : 0, // 댓글 수 처리
+        })) as BlogPost[]; // formattedPosts 배열에 BlogPost[] 타입 단언
+        setBlogPosts(formattedPosts);
       }
-    setLoading(false);
-  };
 
-  fetchPosts();
+      // 2. 카테고리 데이터 가져오기 및 게시물 수 계산
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from('categories')
+        .select('id, name, slug');
 
-    // URL 해시 기반 스크롤 로직
+      if (categoriesError) {
+        console.error('Error fetching categories:', categoriesError);
+        setCategoriesData([]);
+      } else {
+        // 각 카테고리별 게시물 수 계산
+        const categoriesWithCount = await Promise.all(categoriesData.map(async (category) => {
+          const { count, error } = await supabase
+            .from('posts')
+            .select('*', { count: 'exact', head: true })
+            .eq('category_id', category.id);
+
+          if (error) {
+            console.error(`Error counting posts for category ${category.name}:`, error);
+            return { ...category, count: 0 };
+          }
+          return { ...category, count: count || 0 };
+        }));
+
+        // '전체 글' 카테고리 추가 및 전체 게시물 수 계산
+        const { count: totalCount, error: totalCountError } = await supabase
+          .from('posts')
+          .select('*', { count: 'exact', head: true });
+
+        if (totalCountError) {
+           console.error('Error counting total posts:', totalCountError);
+        }
+
+        const allCategory = { id: "all", name: "전체 글", slug: "all", count: totalCount || 0 };
+        setCategoriesData([allCategory, ...categoriesWithCount]);
+      }
+
+       // 3. 인기 태그 데이터 가져오기 및 게시물 수 계산 (post_tags 테이블 활용)
+       const { data: tagsData, error: tagsError } = await supabase
+         .from('tags')
+         .select('id, name, slug');
+
+       if (tagsError) {
+         console.error('Error fetching tags:', tagsError);
+         setPopularTagsData([]);
+       } else {
+         // 각 태그별 게시물 수 계산 (post_tags 테이블 조인)
+         const tagsWithCount = await Promise.all(tagsData.map(async (tag) => {
+           const { count, error } = await supabase
+             .from('post_tags')
+             .select('*', { count: 'exact', head: true })
+             .eq('tag_id', tag.id);
+
+           if (error) {
+             console.error(`Error counting posts for tag ${tag.name}:`, error);
+             return { ...tag, count: 0 };
+           }
+           return { ...tag, count: count || 0 };
+         }));
+         // 필요에 따라 인기 태그 정렬 로직 추가 가능
+         setPopularTagsData(tagsWithCount);
+       }
+
+
+      setLoading(false);
+    };
+
+    fetchData();
+
+    // URL 해시 기반 스크롤 로직 (기존 유지)
     const handleHashScroll = () => {
         if (window.location.hash) {
             const elementId = window.location.hash.substring(1);
             const element = document.getElementById(elementId);
             if (element) {
-                // 헤더 높이를 고려하여 스크롤 위치 조정 (Header 높이가 48px임을 감안)
-                const headerHeight = document.querySelector('header')?.offsetHeight || 0; // 동적으로 헤더 높이 가져오기
+                const headerHeight = document.querySelector('header')?.offsetHeight || 0;
                 const elementPosition = element.getBoundingClientRect().top + window.scrollY;
                 window.scrollTo({
                     top: elementPosition - headerHeight,
@@ -106,25 +235,21 @@ export default function BlogPage() {
         }
     };
 
-    // 페이지 마운트 시 스크롤 로직 실행
     handleHashScroll();
-
-    // 해시 변경 시 스크롤 로직 다시 실행 (SPA 네비게이션 고려)
     window.addEventListener('hashchange', handleHashScroll);
-
-    // 컴포넌트 언마운트 시 이벤트 리스너 해제
     return () => {
         window.removeEventListener('hashchange', handleHashScroll);
     };
 
-}, [activeCategory]); // activeCategory가 변경될 때마다 데이터 다시 가져오기
+  }, [activeCategory]); // activeCategory가 변경될 때마다 데이터 다시 가져오기
 
-  // 검색어에 따라 클라이언트에서 필터링
+  // 검색어에 따라 클라이언트에서 필터링 (Supabase에서 FTS 구현 시 서버에서 처리)
   const filteredPosts = blogPosts.filter((post) => {
     const matchesSearch =
       searchQuery === "" ||
       post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.summary.toLowerCase().includes(searchQuery.toLowerCase()); // summary 필드 사용
+      (post.summary && post.summary.toLowerCase().includes(searchQuery.toLowerCase())) || // summary 필드 사용
+      (post.content && post.content.toLowerCase().includes(searchQuery.toLowerCase())); // content 필드도 검색 대상에 포함
 
     return matchesSearch;
   });
@@ -177,29 +302,26 @@ export default function BlogPage() {
       {/* 블로그 콘텐츠 */}
       <section className="py-16">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8"> {/* lg:col-span-4 제거 */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* 사이드바 */}
             <div className="lg:col-span-1">
               <div className="sticky top-24">
                 <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
                   <h3 className="text-lg font-bold mb-4">카테고리</h3>
                   <ul className="space-y-2">
-                    {/* 카테고리 카운트는 Supabase 데이터 기반으로 동적 계산 필요 */}
-                    {categories.map((category) => (
+                    {/* Supabase에서 가져온 카테고리 데이터 사용 */}
+                    {categoriesData.map((category) => (
                       <li key={category.id}>
                         <button
-                          onClick={() => setActiveCategory(category.id)}
+                          onClick={() => setActiveCategory(category.slug)} // slug를 기준으로 활성 카테고리 설정
                           className={`w-full text-left px-3 py-2 rounded-md flex justify-between items-center transition-colors ${
-                            activeCategory === category.id ? "bg-green-50 text-green-600" : "hover:bg-gray-50"
+                            activeCategory === category.slug ? "bg-green-50 text-green-600" : "hover:bg-gray-50"
                           }`}
                         >
                           <span>{category.name}</span>
                           {/* 동적 카운트 표시 */}
                           <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">
-                            {category.id === 'all'
-                              ? blogPosts.length
-                              : blogPosts.filter(post => post.category === category.id).length
-                            }
+                            {category.count}
                           </span>
                         </button>
                       </li>
@@ -210,17 +332,17 @@ export default function BlogPage() {
                 <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
                   <h3 className="text-lg font-bold mb-4">인기 태그</h3>
                   <div className="flex flex-wrap gap-2">
-                    {/* 태그 목록 및 카운트는 Supabase 데이터 기반으로 동적 생성/계산 필요 */}
-                    {popularTags.map((tag) => (
+                    {/* Supabase에서 가져온 태그 데이터 사용 */}
+                    {popularTagsData.map((tag) => (
                       <Link
                         key={tag.id}
-                        href={`/blog/tag/${tag.id}`} // 실제 태그 페이지 라우팅 필요
+                        href={`/blog/tag/${tag.slug}`} // slug를 사용하여 태그 페이지 라우팅
                         className="inline-flex items-center px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-sm transition-colors"
                       >
                         <Tag className="h-3 w-3 mr-1" />
                         {tag.name}
                         {/* 동적 카운트 표시 */}
-                        <span className="ml-1 text-xs text-gray-500">({tag.count})</span> {/* 현재는 임시 카운트 */}
+                        <span className="ml-1 text-xs text-gray-500">({tag.count})</span>
                       </Link>
                     ))}
                   </div>
@@ -243,7 +365,7 @@ export default function BlogPage() {
             <div className="lg:col-span-3">
               <div className="flex justify-between items-center mb-8">
                 <h2 className="text-2xl font-bold">
-                  {activeCategory === "all" ? "최신 글" : categories.find((c) => c.id === activeCategory)?.name}
+                  {activeCategory === "all" ? "최신 글" : categoriesData.find((c) => c.slug === activeCategory)?.name}
                 </h2>
                 <Link href="/blog/write" className="inline-flex items-center text-green-600 hover:text-green-700">
                   <span className="mr-1">글쓰기</span>
@@ -274,16 +396,16 @@ export default function BlogPage() {
                         {/* 이미지 및 카테고리 태그 */}
                         <Link href={`/blog/${post.id}`} className="block overflow-hidden">
                           <div className="relative h-48 w-full overflow-hidden">
-                            {/* Supabase 스키마에 image 필드가 없으므로 임시 이미지 사용 */}
+                            {/* Supabase에서 가져온 image_url 사용 */}
                             <Image
-                              src={post.image || "/placeholder.svg"}
+                              src={post.image_url || "/placeholder.svg"} // image_url 사용
                               alt={post.title}
                               fill
                               className="object-cover transition-transform hover:scale-105 duration-500"
                             />
-                            {post.category && (
+                            {post.category && ( // category 객체가 존재하면 표시
                               <div className="absolute top-4 left-4 bg-green-500 text-white text-xs px-2 py-1 rounded">
-                                {categories.find((c) => c.id === post.category)?.name || post.category}
+                                {post.category.name} {/* 카테고리 이름 사용 */}
                               </div>
                             )}
                           </div>
@@ -294,15 +416,16 @@ export default function BlogPage() {
                           <div className="flex items-center text-sm text-gray-500 mb-3 space-x-4">
                             <div className="flex items-center">
                               <Calendar className="h-4 w-4 mr-1" />
-                              <span>{post.date}</span> {/* created_at 사용 */}
+                              {/* published_at 또는 created_at 사용 */}
+                              <span>{post.published_at ? new Date(post.published_at).toLocaleDateString('ko-KR') : new Date(post.created_at).toLocaleDateString('ko-KR')}</span>
                             </div>
                             <div className="flex items-center">
                               <User className="h-4 w-4 mr-1" />
-                              <span>{post.author}</span> {/* 임시 작성자 */}
+                              <span>{post.author ? post.author.name : "작성자 미상"}</span> {/* author 객체 사용 */}
                             </div>
                             <div className="flex items-center">
                               <Clock className="h-4 w-4 mr-1" />
-                              <span>{post.readTime}</span> {/* 임시 읽는 시간 */}
+                              <span>{post.read_time || "N분"}</span> {/* read_time 필드 사용 */}
                             </div>
                           </div>
 
@@ -314,18 +437,18 @@ export default function BlogPage() {
                           </Link>
 
                           {/* 요약 */}
-                          <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-1">{post.summary}</p> {/* summary 필드 사용 */}
+                          <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-1">{post.summary || post.content.substring(0, 150) + '...'}</p> {/* summary 또는 content 사용 */}
 
                           {/* 태그 */}
                           <div className="flex flex-wrap gap-2 mt-auto">
-                            {/* 태그는 현재 카테고리만 사용 */}
+                            {/* Supabase에서 가져온 태그 데이터 사용 */}
                             {post.tags.map((tag) => (
                               <Link
-                                key={tag}
-                                href={`/blog/tag/${tag.toLowerCase().replace(/ /g, "-")}`} // 실제 태그 페이지 라우팅 필요
+                                key={tag.id} // 태그 ID 사용
+                                href={`/blog/tag/${tag.slug}`} // 태그 slug 사용
                                 className="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded-full transition-colors"
                               >
-                                #{tag}
+                                #{tag.name} {/* 태그 이름 사용 */}
                               </Link>
                             ))}
                           </div>
@@ -342,7 +465,7 @@ export default function BlogPage() {
 
 
               {/* 페이지네이션 (Supabase 데이터 기반으로 동적 처리 필요) */}
-              {/* 현재는 정적 데이터 기반이므로 임시로 유지 */}
+              {/* 현재는 데이터가 적으므로 임시로 유지, 추후 Supabase 페이지네이션 기능 연동 필요 */}
               {!loading && filteredPosts.length > 0 && (
                 <div className="mt-12 flex justify-center">
                   <nav className="inline-flex rounded-md shadow">
@@ -384,5 +507,5 @@ export default function BlogPage() {
         </div>
       </section>
     </div>
-  )
+  );
 }

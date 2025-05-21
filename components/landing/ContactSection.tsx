@@ -1,18 +1,60 @@
 "use client"; // This section contains interactive elements
 
+import { useState, FormEvent } from 'react';
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion"; // motion is used in this section
+import { supabase } from '@/lib/supabaseClient';
 
 // Import other necessary components or hooks if used within this section
 // Looking at the code, it uses Input, Select, Button, Link, motion, CheckCircle2.
 // It also uses useState, useEffect, useScroll, useTransform, but these are page-level hooks, not section-specific.
 // The section itself uses motion.div, CheckCircle2, Link, Button, Input, Select.
 
+
 export default function ContactSection() {
+  const [name, setName] = useState('');
+  const [company, setCompany] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [interest, setInterest] = useState('');
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
+
+    const { data, error } = await supabase
+      .from('contacts') // Assuming the table name is 'contacts'
+      .insert([
+        { name, company, email, phone, interest, message },
+      ]);
+
+    setLoading(false);
+
+    if (error) {
+      console.error('Error inserting data:', error);
+      setError('문의 제출 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } else {
+      setSuccess(true);
+      // Optionally clear the form
+      setName('');
+      setCompany('');
+      setEmail('');
+      setPhone('');
+      setInterest('');
+      setMessage('');
+    }
+  };
+
   return (
     <section id="contact" className="relative z-10 py-20 bg-slate-900 text-white">
       <div className="container mx-auto px-4">
@@ -71,44 +113,38 @@ export default function ContactSection() {
           >
             <div className="p-8">
               <h3 className="text-xl font-bold text-gray-900 mb-6">문의 양식</h3>
-              <form className="space-y-4">
+              <form className="space-y-4" onSubmit={handleSubmit}>
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                     이름 *
                   </label>
-                  <Input id="name" className="w-full text-gray-900" placeholder="김영" />
+                  <Input id="name" className="w-full text-gray-900" placeholder="김영" value={name} onChange={(e) => setName(e.target.value)} required />
                 </div>
                 <div>
                   <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-1">
                     회사명 *
                   </label>
-                  <Input id="company" className="w-full text-gray-900" placeholder="(주)에이언(AIon INC.)" />
+                  <Input id="company" className="w-full text-gray-900" placeholder="(주)에이언(AIon INC.)" value={company} onChange={(e) => setCompany(e.target.value)} required />
                 </div>
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                     이메일 *
                   </label>
-                  <Input id="email" type="email" className="w-full text-gray-900" placeholder="ceo@AIONlabs.kr" />
+                  <Input id="email" type="email" className="w-full text-gray-900" placeholder="ceo@AIONlabs.kr" value={email} onChange={(e) => setEmail(e.target.value)} required />
                 </div>
                 <div>
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
                     연락처 *
                   </label>
-                  <Input id="phone" className="w-full text-gray-900" placeholder="010-5941-1052" />
+                  <Input id="phone" className="w-full text-gray-900" placeholder="010-5941-1052" value={phone} onChange={(e) => setPhone(e.target.value)} required />
                 </div>
-                {/* <div>
-                  <label htmlFor="interest" className="block text-sm font-medium text-gray-700 mb-1">
-                    관심 분야 *
-                  </label>
-                  <Input id="interest" className="w-full text-gray-900" placeholder="AI 솔루션" />
-                </div> */}
 
                 <div>
                   <label htmlFor="interest" className="block text-sm font-medium text-gray-700 mb-1">
                     관심 분야 *
                   </label>
-                  <Select>
-                    <SelectTrigger className="w-full text-gray-900 placeholder:text-gray-200"> {/* 또는 이전의 text-gray-500 등 */}
+                  <Select value={interest} onValueChange={setInterest} required>
+                    <SelectTrigger className="w-full text-gray-900 placeholder:text-gray-200">
                       <SelectValue placeholder="관심 분야를 선택하세요" />
                     </SelectTrigger>
                     <SelectContent position="popper" sideOffset={4} className="z-50 overflow-y-auto">
@@ -128,11 +164,17 @@ export default function ContactSection() {
                   </label>
                   <textarea
                     id="message"
-                    className="w-full min-h-[100px] rounded-md border border-gray-300 p-2 text-gray-900 placeholder:text-gray-200" // placeholder 색상 추가
+                    className="w-full min-h-[100px] rounded-md border border-gray-300 p-2 text-gray-900 placeholder:text-gray-200"
                     placeholder="문의사항을 입력하세요."
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
                   />
                 </div>
-                <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-6 font-bold">문의하기 (무료)</Button>
+                <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white py-6 font-bold" disabled={loading}>
+                  {loading ? '제출 중...' : '문의하기 (무료)'}
+                </Button>
+                {success && <p className="text-center text-green-600">문의가 성공적으로 제출되었습니다!</p>}
+                {error && <p className="text-center text-red-600">{error}</p>}
                 <p className="text-xs text-center text-gray-500">
                   <Link href="#" className="text-green-600 hover:underline">
                     개인정보처리방침

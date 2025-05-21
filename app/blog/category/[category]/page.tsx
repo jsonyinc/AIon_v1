@@ -8,130 +8,212 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Calendar, User, Tag, ArrowRight, Clock } from "lucide-react"
 import Header from "@/components/header"
-import { useParams } from 'next/navigation'; // useParams 훅 임포트
+import { useParams } from 'next/navigation';
+import { supabase } from "@/lib/supabaseClient"; // Supabase 클라이언트 임포트
 
-// 블로그 카테고리 데이터
-const categories = [
-  { id: "all", name: "전체 글", count: 42 },
-  { id: "ai-trend", name: "AI 트렌드", count: 15 },
-  { id: "case-study", name: "성공 사례", count: 12 },
-  { id: "tech", name: "기술 블로그", count: 8 },
-  { id: "news", name: "뉴스", count: 7 },
-]
-
-// 인기 태그 데이터
-const popularTags = [
-  { id: "ai", name: "AI", count: 28 },
-  { id: "agent-boss", name: "에이전트 보스", count: 15 },
-  { id: "romi", name: "Romi", count: 12 },
-  { id: "business", name: "비즈니스", count: 10 },
-  { id: "innovation", name: "혁신", count: 8 },
-  { id: "future", name: "미래", count: 7 },
-  { id: "technology", name: "기술", count: 6 },
-]
-
-// 블로그 포스트 데이터
-const blogPosts = [
-  {
-    id: 1,
-    title: "에이전트 보스 시스템이 기업 생산성을 37% 향상시키는 방법",
-    summary: "Romi의 에이전트 보스 시스템이 어떻게 기업의 생산성을 크게 향상시키는지 실제 사례와 함께 살펴봅니다.",
-    category: "case-study",
-    image: "/placeholder.svg?height=400&width=600",
-    date: "2025-05-10",
-    author: "김영수",
-    readTime: "8분",
-    tags: ["에이전트 보스", "생산성", "AI"],
-  },
-  {
-    id: 2,
-    title: "2025년 AI 트렌드: 인간-AI 협업의 새로운 패러다임",
-    summary: "2025년 AI 산업의 주요 트렌드와 인간-AI 협업이 가져올 비즈니스 혁신에 대해 분석합니다.",
-    category: "ai-trend",
-    image: "/placeholder.svg?height=400&width=600",
-    date: "2025-05-05",
-    author: "이지원",
-    readTime: "10분",
-    tags: ["AI 트렌드", "협업", "미래"],
-  },
-  {
-    id: 3,
-    title: "Romi 솔루션 기술 아키텍처 심층 분석",
-    summary: "Romi 솔루션의 기술적 구조와 에이전트 보스 시스템의 작동 원리를 자세히 설명합니다.",
-    category: "tech",
-    image: "/placeholder.svg?height=400&width=600",
-    date: "2025-04-28",
-    author: "박준호",
-    readTime: "15분",
-    tags: ["기술", "아키텍처", "Romi"],
-  },
-  {
-    id: 4,
-    title: "Alon Inc., 시리즈 B 투자 유치 성공",
-    summary: "Alon Inc.가 에이전트 보스 기술 개발 가속화를 위한 시리즈 B 투자 유치에 성공했습니다.",
-    category: "news",
-    image: "/placeholder.svg?height=400&width=600",
-    date: "2025-04-20",
-    author: "최민지",
-    readTime: "5분",
-    tags: ["투자", "뉴스", "성장"],
-  },
-  {
-    id: 5,
-    title: "AI 도입 실패 사례와 교훈: 무엇이 문제였나?",
-    summary: "AI 도입에 실패한 기업들의 사례를 분석하고, 성공적인 AI 전환을 위한 핵심 요소를 알아봅니다.",
-    category: "case-study",
-    image: "/placeholder.svg?height=400&width=600",
-    date: "2025-04-15",
-    author: "김영수",
-    readTime: "12분",
-    tags: ["AI 도입", "실패 사례", "교훈"],
-  },
-  {
-    id: 6,
-    title: "에이전트 보스 시스템의 기술적 진화: 1세대에서 3세대까지",
-    summary: "에이전트 보스 시스템의 기술적 발전 과정과 각 세대별 특징 및 개선점을 살펴봅니다.",
-    category: "tech",
-    image: "/placeholder.svg?height=400&width=600",
-    date: "2025-04-08",
-    author: "박준호",
-    readTime: "14분",
-    tags: ["기술 발전", "에이전트 보스", "혁신"],
-  },
-]
-
-// 카테고리별 설명 데이터
-const categoryDescriptions = {
-  "ai-trend":
-    "AI 기술의 최신 트렌드와 미래 전망을 분석하는 글을 모았습니다. 인공지능 기술의 발전 방향과 비즈니스 적용 사례를 확인하세요.",
-  "case-study":
-    "Romi와 에이전트 보스 시스템을 도입한 기업들의 실제 성공 사례를 소개합니다. 구체적인 성과와 도입 과정의 인사이트를 확인하세요.",
-  tech: "Romi 솔루션의 기술적 구조와 작동 원리를 심층적으로 분석합니다. 개발자와 기술 담당자를 위한 전문적인 내용을 제공합니다.",
-  news: "Alon Inc.와 AI 산업의 최신 소식을 전합니다. 투자 유치, 신제품 출시, 주요 행사 등 중요한 뉴스를 확인하세요.",
+// 타입 정의
+interface Author {
+  id: string;
+  name: string;
+  image_url: string | null;
+  role?: string | null; // 역할은 선택적일 수 있음
 }
 
-export default function CategoryPage() { // params 인자 제거
-  const [searchQuery, setSearchQuery] = useState("")
-  const params = useParams(); // useParams 훅 사용
-  const categoryId = params.category as string; // category 파라미터 가져오기
+interface Category {
+  id: string; // Supabase에서는 보통 UUID
+  name: string;
+  slug: string;
+  description?: string | null; // 카테고리 설명
+  posts_count?: number; // 게시물 수 (집계 결과)
+}
 
-  // 현재 카테고리 정보 가져오기
-  const currentCategory = categories.find((cat) => cat.id === categoryId) || {
-    id: categoryId,
-    name: categoryId.charAt(0).toUpperCase() + categoryId.slice(1).replace(/-/g, " "),
-    count: 0,
-  }
+interface TagType { // Tag는 HTML 태그와 충돌하므로 TagType으로 변경
+  id: string;
+  name: string;
+  slug: string;
+  posts_count?: number; // 게시물 수 (집계 결과)
+}
 
-  // 카테고리에 맞는 포스트 필터링
+interface BlogPost {
+  id: string;
+  created_at: string;
+  title: string;
+  summary: string | null;
+  image_url: string | null;
+  published_at: string | null;
+  read_time: string | null;
+  author: Author | null;
+  category: Category | null;
+  tags: TagType[];
+}
+
+export default function CategoryPage() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const params = useParams();
+  const categorySlug = params.category as string; // URL에서 카테고리 slug 가져오기
+
+  const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [popularTags, setPopularTags] = useState<TagType[]>([]); // 인기 태그 상태
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPageData = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        // 1. 모든 카테고리 가져오기 (게시물 수 포함)
+        const { data: categoriesData, error: categoriesError } = await supabase
+          .from('categories')
+          .select(`
+            id,
+            name,
+            slug,
+            description,
+            posts_count:posts(count)
+          `)
+          .order('name', { ascending: true });
+
+        if (categoriesError) throw categoriesError;
+        
+        const fetchedCategories = categoriesData?.map(c => ({
+            id: c.id,
+            name: c.name,
+            slug: c.slug,
+            description: c.description,
+            posts_count: (c.posts_count as any[] | null)?.[0]?.count || 0,
+        })) || [];
+        setCategories(fetchedCategories);
+
+        // 2. 현재 카테고리 정보 가져오기
+        const currentCatData = fetchedCategories.find(c => c.slug === categorySlug);
+        if (currentCatData) {
+            setCurrentCategory(currentCatData);
+        } else if (categorySlug) {
+            // slug는 있지만 카테고리 목록에 없는 경우, 직접 DB에서 조회 시도
+            const { data: singleCategoryData, error: singleCategoryError } = await supabase
+                .from('categories')
+                .select(`id, name, slug, description, posts_count:posts(count)`)
+                .eq('slug', categorySlug)
+                .single();
+            if (singleCategoryError && singleCategoryError.code !== 'PGRST116') { // PGRST116: no rows found
+                 console.warn(`Error fetching category by slug ${categorySlug}:`, singleCategoryError);
+            } else if (singleCategoryData) {
+                setCurrentCategory({
+                    id: singleCategoryData.id,
+                    name: singleCategoryData.name,
+                    slug: singleCategoryData.slug,
+                    description: singleCategoryData.description,
+                    posts_count: (singleCategoryData.posts_count as any[] | null)?.[0]?.count || 0,
+                });
+            } else {
+                 setError(`카테고리 '${categorySlug}'를 찾을 수 없습니다.`);
+                 setLoading(false);
+                 return;
+            }
+        } else {
+            // categorySlug가 없는 경우 (예: /blog/category/all 또는 잘못된 접근)
+            // 이 페이지는 특정 카테고리를 가정하므로, 오류 처리 또는 리다이렉션 필요
+            setError("유효한 카테고리가 지정되지 않았습니다.");
+            setLoading(false);
+            return;
+        }
+        
+        // 3. 인기 태그 가져오기 (모든 태그와 각 태그별 게시물 수)
+        // 실제 "인기" 로직은 추후 구현 (예: 게시물 수가 많은 순으로 정렬 후 상위 N개)
+        const { data: tagsData, error: tagsError } = await supabase
+          .from('tags')
+          .select(`
+            id,
+            name,
+            slug,
+            posts_count:post_tags(count)
+          `)
+          .order('name', { ascending: true }); //일단 이름순 정렬
+
+        if (tagsError) throw tagsError;
+        setPopularTags(tagsData?.map(t => ({
+            id: t.id,
+            name: t.name,
+            slug: t.slug,
+            posts_count: (t.posts_count as any[] | null)?.[0]?.count || 0,
+        })) || []);
+
+        // 4. 현재 카테고리에 속한 블로그 게시물 가져오기
+        if (currentCatData) { // currentCategory가 설정된 후에 게시물 가져오기
+          const { data: postsData, error: postsError } = await supabase
+            .from('posts')
+            .select(`
+              id,
+              created_at,
+              title,
+              summary,
+              image_url,
+              published_at,
+              read_time,
+              author:author_id ( id, name, image_url, role ),
+              category:category_id ( id, name, slug, description ),
+              tags:post_tags ( tag:tag_id ( id, name, slug ) )
+            `)
+            .eq('category_id', currentCatData.id) // 현재 카테고리 ID로 필터링
+            .order('published_at', { ascending: false, nullsFirst: false })
+            .order('created_at', { ascending: false });
+
+          if (postsError) throw postsError;
+
+          const formattedPosts: BlogPost[] = postsData?.map((post: any) => ({
+            id: post.id,
+            created_at: post.created_at,
+            title: post.title,
+            summary: post.summary,
+            image_url: post.image_url,
+            published_at: post.published_at,
+            read_time: post.read_time,
+            author: post.author ? {
+                id: post.author.id,
+                name: post.author.name,
+                image_url: post.author.image_url,
+                role: post.author.role,
+            } : null,
+            category: post.category ? {
+                id: post.category.id,
+                name: post.category.name,
+                slug: post.category.slug,
+                description: post.category.description,
+            } : null,
+            tags: post.tags ? post.tags.map((tagRelation: any) => tagRelation.tag) : [],
+          })) || [];
+          setBlogPosts(formattedPosts);
+        }
+
+      } catch (err: any) {
+        console.error("Error fetching category page data:", err);
+        setError(err.message || "데이터를 불러오는 중 오류가 발생했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (categorySlug) { // categorySlug가 있을 때만 데이터 가져오기 실행
+        fetchPageData();
+    } else {
+        setError("카테고리가 지정되지 않았습니다.");
+        setLoading(false);
+    }
+  }, [categorySlug]); // categorySlug가 변경될 때마다 데이터 다시 가져오기
+
+
+  // 검색어에 따라 게시물 필터링 (클라이언트 측 필터링)
   const filteredPosts = blogPosts.filter((post) => {
-    const matchesCategory = categoryId === post.category
     const matchesSearch =
       searchQuery === "" ||
       post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.summary.toLowerCase().includes(searchQuery.toLowerCase())
-
-    return matchesCategory && matchesSearch
-  })
+      (post.summary && post.summary.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesSearch;
+  });
 
     useEffect(() => {
         // URL 해시 기반 스크롤 로직
@@ -162,8 +244,32 @@ export default function CategoryPage() { // params 인자 제거
             window.removeEventListener('hashchange', handleHashScroll);
         };
 
-    }, []); // 빈 배열을 전달하여 컴포넌트 마운트 시 한 번만 실행
+    }, []);
 
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p>데이터를 불러오는 중입니다...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p>오류가 발생했습니다: {error}</p>
+      </div>
+    );
+  }
+
+  if (!currentCategory) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p>카테고리를 찾을 수 없습니다.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -179,7 +285,7 @@ export default function CategoryPage() { // params 인자 제거
               transition={{ duration: 0.5 }}
               className="text-4xl md:text-5xl font-bold mb-6"
             >
-              {currentCategory.name}
+              {currentCategory?.name || "카테고리"}
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -187,8 +293,7 @@ export default function CategoryPage() { // params 인자 제거
               transition={{ duration: 0.5, delay: 0.1 }}
               className="text-lg text-gray-300 mb-8"
             >
-              {categoryDescriptions[categoryId as keyof typeof categoryDescriptions] ||
-                "이 카테고리의 최신 글과 인사이트를 확인하세요."}
+              {currentCategory?.description || "이 카테고리의 최신 글과 인사이트를 확인하세요."}
             </motion.p>
 
             <motion.div
@@ -200,7 +305,7 @@ export default function CategoryPage() { // params 인자 제거
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <Input
                 type="text"
-                placeholder={`${currentCategory.name} 검색...`}
+                placeholder={`${currentCategory?.name || "카테고리"} 검색...`}
                 className="pl-10 py-6 bg-white/10 border-none text-white placeholder:text-gray-400 focus-visible:ring-green-500"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -220,38 +325,56 @@ export default function CategoryPage() { // params 인자 제거
                 <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
                   <h3 className="text-lg font-bold mb-4">카테고리</h3>
                   <ul className="space-y-2">
+                    {/* "전체 글" 카테고리 링크 추가 */}
+                    <li>
+                      <Link
+                        href="/blog"
+                        className={`px-3 py-2 rounded-md flex justify-between items-center transition-colors ${
+                          !categorySlug || categorySlug === "all" ? "bg-green-50 text-green-600" : "hover:bg-gray-50"
+                        }`}
+                      >
+                        <span>전체 글</span>
+                        {/* 전체 글 개수는 모든 카테고리 게시물 수의 합 또는 별도 로직 필요 */}
+                      </Link>
+                    </li>
                     {categories.map((category) => (
                       <li key={category.id}>
                         <Link
-                          href={category.id === "all" ? "/blog" : `/blog/category/${category.id}`}
+                          href={`/blog/category/${category.slug}`}
                           className={`px-3 py-2 rounded-md flex justify-between items-center transition-colors ${
-                            categoryId === category.id ? "bg-green-50 text-green-600" : "hover:bg-gray-50"
+                            categorySlug === category.slug ? "bg-green-50 text-green-600" : "hover:bg-gray-50"
                           }`}
                         >
                           <span>{category.name}</span>
-                          <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">{category.count}</span>
+                          {category.posts_count !== undefined && (
+                            <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">{category.posts_count}</span>
+                          )}
                         </Link>
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-                  <h3 className="text-lg font-bold mb-4">인기 태그</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {popularTags.map((tag) => (
-                      <Link
-                        key={tag.id}
-                        href={`/blog/tag/${tag.id}`}
-                        className="inline-flex items-center px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-sm transition-colors"
-                      >
-                        <Tag className="h-3 w-3 mr-1" />
-                        {tag.name}
-                        <span className="ml-1 text-xs text-gray-500">({tag.count})</span>
-                      </Link>
-                    ))}
+                {popularTags.length > 0 && (
+                  <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+                    <h3 className="text-lg font-bold mb-4">인기 태그</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {popularTags.map((tag) => (
+                        <Link
+                          key={tag.id}
+                          href={`/blog/tag/${tag.slug}`}
+                          className="inline-flex items-center px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-sm transition-colors"
+                        >
+                          <Tag className="h-3 w-3 mr-1" />
+                          {tag.name}
+                          {tag.posts_count !== undefined && (
+                            <span className="ml-1 text-xs text-gray-500">({tag.posts_count})</span>
+                          )}
+                        </Link>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="bg-gradient-to-br from-green-500 to-teal-600 rounded-lg shadow-sm p-6 text-white">
                   <h3 className="text-lg font-bold mb-2">블로그 구독하기</h3>
@@ -293,13 +416,13 @@ export default function CategoryPage() { // params 인자 제거
                       <Link href={`/blog/${post.id}`} className="block overflow-hidden">
                         <div className="relative h-48 w-full overflow-hidden">
                           <Image
-                            src={post.image || "/placeholder.svg"}
+                            src={post.image_url || "/placeholder.svg"}
                             alt={post.title}
                             fill
                             className="object-cover transition-transform hover:scale-105 duration-500"
                           />
                           <div className="absolute top-4 left-4 bg-green-500 text-white text-xs px-2 py-1 rounded">
-                            {categories.find((c) => c.id === post.category)?.name}
+                            {post.category?.name}
                           </div>
                         </div>
                       </Link>
@@ -308,15 +431,15 @@ export default function CategoryPage() { // params 인자 제거
                         <div className="flex items-center text-sm text-gray-500 mb-3 space-x-4">
                           <div className="flex items-center">
                             <Calendar className="h-4 w-4 mr-1" />
-                            <span>{post.date}</span>
+                            <span>{post.published_at ? new Date(post.published_at).toLocaleDateString('ko-KR') : new Date(post.created_at).toLocaleDateString('ko-KR')}</span>
                           </div>
                           <div className="flex items-center">
                             <User className="h-4 w-4 mr-1" />
-                            <span>{post.author}</span>
+                            <span>{post.author?.name || "익명"}</span>
                           </div>
                           <div className="flex items-center">
                             <Clock className="h-4 w-4 mr-1" />
-                            <span>{post.readTime}</span>
+                            <span>{post.read_time || "N분"}</span>
                           </div>
                         </div>
 
@@ -331,11 +454,11 @@ export default function CategoryPage() { // params 인자 제거
                         <div className="flex flex-wrap gap-2 mt-auto">
                           {post.tags.map((tag) => (
                             <Link
-                              key={tag}
-                              href={`/blog/tag/${tag.toLowerCase().replace(/ /g, "-")}`}
+                              key={tag.id}
+                              href={`/blog/tag/${tag.slug}`}
                               className="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded-full transition-colors"
                             >
-                              #{tag}
+                              #{tag.name}
                             </Link>
                           ))}
                         </div>
