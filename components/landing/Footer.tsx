@@ -117,8 +117,8 @@ export default function Footer() {
                   </svg>
                 </div>
                 <span className="text-base text-gray-400">
-                  경기도 화성시 봉담읍 수영로 ㅇㅇ <br />
-                  Alon빌딩 14F
+                  경기도 화성시 봉담<br />
+                  AION LABS 빌딩 14F
                 </span>
               </li>
               <li className="flex items-center">
@@ -130,7 +130,7 @@ export default function Footer() {
                     />
                   </svg>
                 </div>
-                <span className="text-base text-gray-400">ceo@AIonlabs.kr</span>
+                <span className="text-base text-gray-400">ceo@AIONlabs.kr</span>
               </li>
               <li className="flex items-center">
                 <div className="mr-2">

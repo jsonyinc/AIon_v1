@@ -88,7 +88,7 @@ export default function ContactSection() {
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                     이메일 *
                   </label>
-                  <Input id="email" type="email" className="w-full text-gray-900" placeholder="example@company.com" />
+                  <Input id="email" type="email" className="w-full text-gray-900" placeholder="ceo@AIONlabs.kr" />
                 </div>
                 <div>
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">

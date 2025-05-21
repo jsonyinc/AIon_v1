@@ -52,21 +52,75 @@ const ITTelecomIcon = () => (
     <svg className="text-sky-600 w-10 h-10 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM4 18V6h16v12H4zm2-8h2v2H6v-2zm0 4h2v2H6v-2zm4-4h8v2h-8v-2zm0 4h5v2h-5v-2z"></path></svg>
 );
 
-const PredictionIcon = () => (
-    <svg className="text-emerald-600 w-5 h-5 mr-2 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.85 12.85A8.87 8.87 0 0 0 12 4.15a8.87 8.87 0 0 0-7.85 8.7A8.87 8.87 0 0 0 12 21.55a8.87 8.87 0 0 0 7.85-8.7M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"></path><path d="M11 15H9v2h2v-2zm4-2h-2v4h2v-4zm-4-2H9v2h2V9zm4-2h-2v2h2V7z"></path></svg>
+// const PredictionIcon = () => (
+//     <svg className="text-emerald-600 w-5 h-5 mr-2 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.85 12.85A8.87 8.87 0 0 0 12 4.15a8.87 8.87 0 0 0-7.85 8.7A8.87 8.87 0 0 0 12 21.55a8.87 8.87 0 0 0 7.85-8.7M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"></path><path d="M11 15H9v2h2v-2zm4-2h-2v4h2v-4zm-4-2H9v2h2V9zm4-2h-2v2h2V7z"></path></svg>
+// );
+
+// const AutomationIcon = () => (
+//     <svg className="text-emerald-600 w-5 h-5 mr-2 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 6a.997.997 0 0 0-1 1v2H9a1 1 0 1 0 0 2h2v2a1 1 0 1 0 2 0v-2h2a1 1 0 1 0 0-2h-2V7a.997.997 0 0 0-1-1zm7.94-1.06a10 10 0 1 0-15.88 0A10 10 0 0 0 19.94 4.94zM4.06 19.06A8 8 0 1 1 19.06 5.94 8 8 0 0 1 4.06 19.06z"></path></svg>
+// );
+
+// const QualityIcon = () => (
+//     <svg className="text-emerald-600 w-5 h-5 mr-2 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8zm-2.29-5.71L12 13.41l2.29 2.29 1.41-1.41L13.41 12l2.29-2.29-1.41-1.41L12 10.59 9.71 8.29 8.29 9.71 10.59 12l-2.3 2.29 1.42 1.42z"></path></svg>
+// );
+
+// const ChallengeIcon = () => (
+//     <svg className="text-red-500 w-5 h-5 mr-2 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"></path></svg>
+// );
+// IconProps 공통 타입 정의
+type IconProps = {
+  className?: string;
+};
+
+// 1. 예측 유지보수 아이콘
+export const PredictionIcon = ({ className = "" }: IconProps) => (
+  <svg
+    className={`text-emerald-600 w-5 h-5 mr-2 flex-shrink-0 ${className}`}
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+  >
+    <path d="M19.85 12.85A8.87 8.87 0 0 0 12 4.15..." />
+    <path d="M11 15H9v2h2v-2zm4-2h-2v4h2v-4..." />
+  </svg>
 );
 
-const AutomationIcon = () => (
-    <svg className="text-emerald-600 w-5 h-5 mr-2 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 6a.997.997 0 0 0-1 1v2H9a1 1 0 1 0 0 2h2v2a1 1 0 1 0 2 0v-2h2a1 1 0 1 0 0-2h-2V7a.997.997 0 0 0-1-1zm7.94-1.06a10 10 0 1 0-15.88 0A10 10 0 0 0 19.94 4.94zM4.06 19.06A8 8 0 1 1 19.06 5.94 8 8 0 0 1 4.06 19.06z"></path></svg>
+// 2. 공정 자동화 아이콘
+export const AutomationIcon = ({ className = "" }: IconProps) => (
+  <svg
+    className={`text-emerald-600 w-5 h-5 mr-2 flex-shrink-0 ${className}`}
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+  >
+    <path d="..." />
+  </svg>
 );
 
-const QualityIcon = () => (
-    <svg className="text-emerald-600 w-5 h-5 mr-2 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8zm-2.29-5.71L12 13.41l2.29 2.29 1.41-1.41L13.41 12l2.29-2.29-1.41-1.41L12 10.59 9.71 8.29 8.29 9.71 10.59 12l-2.3 2.29 1.42 1.42z"></path></svg>
+// 3. 품질 관리 아이콘
+export const QualityIcon = ({ className = "" }: IconProps) => (
+  <svg
+    className={`text-emerald-600 w-5 h-5 mr-2 flex-shrink-0 ${className}`}
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+  >
+    <path d="..." />
+  </svg>
 );
 
-const ChallengeIcon = () => (
-    <svg className="text-red-500 w-5 h-5 mr-2 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"></path></svg>
+// 4. 도전 과제 아이콘
+export const ChallengeIcon = ({ className = "" }: IconProps) => (
+  <svg
+    className={`text-red-600 w-5 h-5 mr-2 flex-shrink-0 ${className}`}
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+  >
+    <path d="..." />
+  </svg>
 );
+
 
 const FrontierIcon = () => (
     <svg className="w-full h-auto max-w-xs text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
@@ -550,37 +604,56 @@ const GlobalAITrendsReportPage = () => {
                    <section id="industry-trends" className="mb-16"> {/* "산업별 AI 도입 동향 및 전망" 시작 */}
                         <h2 className="text-4xl font-bold mb-10 text-gray-900 text-center animate-on-scroll animate-fade-in">산업별 AI 도입 동향 및 전망</h2>
                         <div className="animate-on-scroll animate-fade-in"> {/* 이 div가 새로 추가되고 클래스가 적용됩니다 */}
-                            <div className="card-base mb-8 animate-on-scroll animate-fade-in"> {/* 제조업 시작 - card-base 클래스 제거 */}
+                            <div className="card-base mb-8 animate-on-scroll animate-fade-in"> {/* 제조업 시작 */}
+                                {/* 섹션 제목 */}
                                 <div className="flex items-center mb-4">
                                     <ManufacturingIcon />
-                                    <h3 className="text-2xl font-semibold text-emerald-800">제조업 (Manufacturing)</h3>
+                                    <h3 className="text-2xl font-semibold text-emerald-800 ml-2">제조업 (Manufacturing)</h3>
                                 </div>
-                                <div className="grid md:grid-cols-2 gap-6 items-center">
-                                    <div className="manufacturing-donut-container flex flex-col items-center justify-center" style={{ height: 300 }}>
-                                        <canvas id="manufacturingAiAdoptionChart"></canvas>
+
+                                {/* 차트 + 설명 그리드 */}
+                                <div className="grid md:grid-cols-3 gap-6 items-start">                               
+                                    {/* 도넛 차트 */}
+                                    <div className="flex flex-col items-center justify-center text-center p-4 bg-gray-50 rounded-md">
+                                        <div className="w-full max-w-xs h-[240px] mb-2">
+                                            <canvas id="manufacturingAiAdoptionChart" />
+                                        </div>
+                                        <p className="text-sm text-gray-700">AI 투자/적용 비중</p>
                                     </div>
-                                    <div className="manufacturing-description text-gray-700">
-                                        <h4 className="text-lg font-semibold text-emerald-800 mb-3">주요 AI 적용 분야 및 효과</h4>
-                                        <div className="flex items-start mb-3">
-                                            <PredictionIcon />
-                                            <p className="text-sm leading-relaxed"><strong className="text-emerald-700">예측 유지보수:</strong> Siemens, 발전소 정전 <strong>25% 감소</strong>, 연간 <strong>7.5억 달러</strong> 비용 절감.</p>
+                                    {/* 설명 영역 */}
+                                    <div className="md:col-span-2 p-4 bg-gray-50 rounded-md text-gray-700">
+                                        <h4 className="text-base font-medium text-emerald-800 mb-3">주요 AI 적용 분야 및 효과</h4>
+                                        
+                                        <div className="flex items-start gap-2 mb-3">
+                                            <PredictionIcon className="mt-1" />
+                                            <p className="text-sm leading-relaxed">
+                                            <strong className="text-emerald-700">예측 유지보수:</strong> Siemens, 발전소 정전 <strong>25% 감소</strong>, 연간 <strong>7.5억 달러</strong> 비용 절감.
+                                            </p>
                                         </div>
-                                        <div className="flex items-start mb-3">
-                                            <AutomationIcon />
-                                            <p className="text-sm leading-relaxed"><strong className="text-emerald-700">공정 자동화:</strong> KG Steel, 자율 제어 에이전트로 LNG 소비 약 <strong>2% 절감</strong>, 품질 편차 감소.</p>
+                                        <div className="flex items-start gap-2 mb-3">
+                                            <AutomationIcon className="mt-1" />
+                                            <p className="text-sm leading-relaxed">
+                                            <strong className="text-emerald-700">공정 자동화:</strong> KG Steel, 자율 제어 에이전트로 LNG 소비 약 <strong>2% 절감</strong>, 품질 편차 감소.
+                                            </p>
                                         </div>
-                                        <div className="flex items-start mb-3">
-                                            <QualityIcon />
-                                            <p className="text-sm leading-relaxed"><strong className="text-emerald-700">품질 관리:</strong> AI 기반 시각 검사, 결함 감지 정확도 향상.</p>
+                                        <div className="flex items-start gap-2 mb-3">
+                                            <QualityIcon className="mt-1" />
+                                            <p className="text-sm leading-relaxed">
+                                            <strong className="text-emerald-700">품질 관리:</strong> AI 기반 시각 검사, 결함 감지 정확도 향상.
+                                            </p>
                                         </div>
-                                        <h4 className="text-lg font-semibold text-emerald-800 mt-4 mb-3">주요 도전 과제</h4>
-                                        <div className="flex items-start">
-                                            <ChallengeIcon />
-                                            <p className="text-sm leading-relaxed">사이버 보안(60%), 도입 비용(46%), 직원 우려(42%), 기존 시스템 통합.</p>
+                                        <h4 className="text-base font-medium text-emerald-800 mt-4 mb-3">주요 도전 과제</h4>
+
+                                        <div className="flex items-start gap-2">
+                                            <ChallengeIcon className="mt-1" />
+                                            <p className="text-sm leading-relaxed">
+                                            사이버 보안(60%), 도입 비용(46%), 직원 우려(42%), 기존 시스템 통합.
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
-                            </div> {/* 제조업 끝 */}
+                            </div>
+
 
                             <div className="card-base mb-8 animate-on-scroll animate-fade-in"> {/* 금융 서비스 시작 - card-base 클래스 제거 */}
                                 <div className="flex items-center mb-4">
@@ -675,12 +748,16 @@ const GlobalAITrendsReportPage = () => {
                         <h2 className="text-4xl font-bold mb-10 text-gray-900 text-center animate-on-scroll animate-fade-in">"프론티어 기업"의 부상과 특징</h2>
                         <div className="card-base p-8 animate-on-scroll animate-fade-in"> {/* 섹션 콘텐츠 컨테이너 (기존과 동일) */}
                             <div className="flex flex-col md:flex-row items-center gap-8 mb-8">
-                                <div className="md:w-1/3 flex justify-center items-center mb-6 md:mb-0">
+                                {/* <div className="md:w-1/3 flex justify-center items-center mb-6 md:mb-0">
                                     <FrontierIcon />
+                                </div> */}
+                                <div className="md:w-1/3 flex justify-center items-center mb-6 md:mb-0">
+                                    <img src="/AI-growth.png" alt="AI로 성장견인" className="w-90 h-auto opacity-80 hover:opacity-100 transition-opacity duration-300 shadow-lg rounded-3xl" />
                                 </div>
+
                                 <div className="md:w-2/3">
                                     <p className="text-lg text-gray-700 leading-relaxed">"프론티어 기업"은 AI 기술, 특히 <strong>AI 에이전트를 조직 운영 전반에 적극적으로 도입하고 활용</strong>하여 높은 수준의 AI 성숙도를 달성한 선도 기업을 의미합니다. (출처: Microsoft Work Trend Index)</p>
-                                    <p className="text-gray-600 mt-2">이들은 온디맨드 인텔리전스를 중심으로 인간과 AI 에이전트가 결합된 <strong>하이브리드 팀</strong>을 통해 업무를 수행하며, 전통적 기업보다 빠르게 확장하고 새로운 방식으로 가치를 창출합니다.</p>
+                                    <p className="text-gray-600 text-lg mt-2">이들은 온디맨드 인텔리전스를 중심으로 인간과 AI 에이전트가 결합된 <strong>하이브리드 팀</strong>을 통해 업무를 수행하며, 전통적 기업보다 빠르게 확장하고 새로운 방식으로 가치를 창출합니다.</p>
                                 </div>
                             </div>
 
