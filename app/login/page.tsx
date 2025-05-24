@@ -64,7 +64,7 @@ export default function LoginPage() {
       }
       console.error("Email login error:", error.message);
     } else {
-      const redirectPath = searchParams.get('redirect') || '/blog';
+      const redirectPath = isClient ? searchParams.get('redirect') || '/blog' : '/blog';
       console.log(`[LoginPage] Email login success - Redirecting to: ${redirectPath}`);
       router.push(redirectPath);
     }

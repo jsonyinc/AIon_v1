@@ -60,7 +60,7 @@ export default function SignupPage() {
       console.log("Signup successful, confirmation email sent.");
     } else {
       setMessage("회원가입에 성공했습니다. 로그인 페이지로 이동합니다.");
-      const redirectPath = searchParams.get('redirect') || '/blog';
+      const redirectPath = isClient ? searchParams.get('redirect') || '/blog' : '/blog';
       console.log(`[SignupPage] Signup success - Redirecting to: ${redirectPath}`);
       router.push(redirectPath);
     }
