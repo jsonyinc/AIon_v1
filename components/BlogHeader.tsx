@@ -3,18 +3,22 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from 'next/image';
-import { useRouter } from "next/navigation"; // useRouter 임포트
+import { useRouter, usePathname } from "next/navigation"; // usePathname 임포트
 import { Button } from "@/components/ui/button"
 import { Menu, ChevronDown } from "lucide-react"
-import MobileMenu from "./mobile-menu"
+import MobileMenu from "./mobile-menu" // MobileMenu는 그대로 사용
 import { motion, useScroll, useTransform } from "framer-motion"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // 아바타 컴포넌트 임포트
+import { useAuth } from "@/components/AuthProvider"; // useAuth 훅 임포트
+import { supabase } from "@/lib/supabaseClient"; // Supabase 클라이언트 임포트
 
-export default function Header() {
-  const router = useRouter(); // useRouter 훅 사용
+export default function BlogHeader() {
+  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const { scrollY } = useScroll()
+  const { user, loading: authLoading } = useAuth(); // 인증 상태 가져오기
 
   // 스크롤에 따른 헤더 배경 투명도 조절
   const headerBgOpacity = useTransform(scrollY, [0, 100], [0.9, 1])
@@ -33,6 +37,29 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
+  const pathname = usePathname(); // usePathname 훅 사용
+
+  const handleLogin = () => {
+    // 현재 페이지 경로를 redirect 파라미터로 전달
+    const currentPath = pathname || '/blog';
+    const loginUrl = `/login?redirect=${encodeURIComponent(currentPath)}`;
+    
+    console.log('[BlogHeader] Navigating to login with redirect:', loginUrl);
+    router.push(loginUrl);
+  };
+
+  const handleLogout = async () => {
+    console.log('[BlogHeader] Logout initiated.');
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('로그아웃 오류:', error.message);
+      alert('로그아웃 중 오류가 발생했습니다.');
+    } else {
+      console.log('[BlogHeader] Redirecting to /blog after logout.');
+      router.push('/blog');
+    }
+  };
+
   return (
     <>
       <motion.header
@@ -49,9 +76,9 @@ export default function Header() {
               <Image
                 src="/logo.png"
                 alt="AIon Inc Logo"
-                width={40}  // 실제 로고 이미지 크기에 맞게 조정하세요. => 의미 없음
-                height={40} // 실제 로고 이미지 크기에 맞게 조정하세요. => 의미 없음
-                className="h-12 w-auto" // 예시: 높이를 기준으로 자동 너비 조정 (Tailwind CSS)
+                width={40}
+                height={40}
+                className="h-12 w-auto"
               />
               <span className="text-4xl font-bold text-black ml-2">AIon</span>
               <span className="text-4xl font-bold text-green-500 ml-2">RomiⒻ</span>
@@ -59,6 +86,7 @@ export default function Header() {
           </div>
 
           <nav className="hidden md:flex space-x-1">
+            {/* 랜딩 페이지 메뉴 링크들 추가 */}
             <Link
               href="/#problem"
               className="text-xl font-bold px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
@@ -84,7 +112,7 @@ export default function Header() {
               회사 소개
             </Link>
 
-            {/* 블로그 드롭다운 메뉴 */}
+            {/* 블로그 드롭다운 메뉴 (기존과 동일) */}
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <button className="text-xl font-bold px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors flex items-center">
@@ -108,23 +136,49 @@ export default function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
 
+            {/* 블로그 헤더에서는 '연락처' 대신 '글쓰기' 또는 다른 블로그 관련 메뉴 추가 가능 */}
             <Link
-              href="/#contact"
+              href="/blog/write"
               className="text-xl font-bold px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
             >
-              연락처
+              글쓰기
             </Link>
           </nav>
 
           <div className="flex items-center space-x-4">
-            {/* 문의 버튼 */}
-            <Link href="/#contact" passHref legacyBehavior>
-            <Button className="hidden md:flex bg-orange-500 hover:bg-orange-600 text-white rounded-full">
-              문의
-            </Button>
-            </Link>
+            {/* 로그인/로그아웃 및 사용자 정보 영역 */}
+            {authLoading ? (
+              <div className="text-gray-600">로딩 중...</div>
+            ) : user ? (
+              <DropdownMenu modal={false}>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center space-x-2 cursor-pointer">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.user_metadata?.avatar_url || "/placeholder-user.jpg"} alt={user.user_metadata?.full_name || user.email || "User"} />
+                      <AvatarFallback>{user.email ? user.email[0].toUpperCase() : '?'}</AvatarFallback>
+                    </Avatar>
+                    <span className="text-gray-800 font-medium hidden sm:inline">
+                      {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                    </span>
+                    <ChevronDown className="ml-1 h-4 w-4 text-gray-600" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" sideOffset={5} className="w-48">
+                  <DropdownMenuItem className="cursor-pointer text-lg font-semibold" onClick={() => router.push('/profile')}>
+                    내 프로필
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer text-lg font-semibold" onClick={handleLogout}>
+                    로그아웃
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : ( // 로그인 버튼 클릭 시 handleLogin 호출
+              <Button onClick={handleLogin} className="bg-green-500 hover:bg-green-600 text-white rounded-full">
+                로그인
+              </Button>
+            )}
 
-            {/* 문의 버튼 */}
+            {/* 모바일 메뉴 토글 버튼 */}
             <button
               className="md:hidden p-2 rounded-md hover:bg-gray-100 transition-colors"
               onClick={() => setIsMenuOpen(true)}

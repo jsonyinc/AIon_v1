@@ -1,6 +1,7 @@
 import type React from "react"
 import type { Metadata } from "next"
 import "./globals.css"
+import { AuthProvider } from "@/components/AuthProvider"; // AuthProvider 임포트
 
 export const metadata: Metadata = {
   title: "AIon Inc | Romi Factory",
@@ -20,7 +21,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="overflow-y-scroll">{children}</body>
+      <body className="overflow-y-scroll">
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </body>
     </html>
   )
 }
