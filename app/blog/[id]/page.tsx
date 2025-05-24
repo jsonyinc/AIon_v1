@@ -106,15 +106,26 @@ const fetchPostData = cache(async (id: string): Promise<BlogPost | null> => {
   return null;
 });
 
-export default async function BlogPostPage({ params }: { params: { id: string } }) {
+import type { Metadata } from 'next'; // Metadata 타입을 임포트합니다.
+
+interface BlogPostPageProps {
+  params: {
+    id: string;
+  };
+}
+
+export const metadata: Metadata = {
+  title: '블로그 게시물', // 실제 게시물 제목으로 동적으로 설정할 수 있습니다.
+  description: '블로그 게시물 상세 페이지',
+};
+
+export default async function BlogPostPage({ params }: BlogPostPageProps) {
   // Explicitly await params before accessing properties, as per error message's implication
   // Although params in Server Components are usually resolved, this might satisfy the runtime check.
   // It's unusual to await params directly like this, but the error message is specific.
   // A more common pattern if params were a promise would be to use React.use(params) if it were a Client Component,
   // or for Server Components, destructuring is usually fine.
-  // This is an attempt to directly address the "params should be awaited" part of the error.
-  const resolvedParams = await params; 
-  const id = resolvedParams.id;
+  const { id } = params;
 
   const post = await fetchPostData(id);
 
