@@ -21,20 +21,20 @@ export default function SignupPage() {
   const searchParams = useSearchParams()
   const { user, loading: authLoading } = useAuth()
 
-  // 이미 로그인된 사용자는 리디렉션
-  useEffect(() => {
-    if (!authLoading && user) {
-      const redirectPath = searchParams.get('redirect') || '/blog';
-      console.log(`[SignupPage] useEffect - Redirecting to: ${redirectPath}`);
-      router.push(redirectPath);
-    }
-  }, [user, authLoading, router, searchParams]);
-
   // 클라이언트 측에서만 실행되는 로직
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // 이미 로그인된 사용자는 리디렉션
+  useEffect(() => {
+    if (isClient && !authLoading && user) {
+      const redirectPath = searchParams.get('redirect') || '/blog';
+      console.log(`[SignupPage] useEffect - Redirecting to: ${redirectPath}`);
+      router.push(redirectPath);
+    }
+  }, [user, authLoading, router, searchParams, isClient]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();

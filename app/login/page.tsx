@@ -21,22 +21,30 @@ export default function LoginPage() {
   const searchParams = useSearchParams()
   const { user, loading: authLoading } = useAuth()
 
+  // 클라이언트 측에서만 실행되는 로직
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   // 이미 로그인된 사용자는 리디렉션
   useEffect(() => {
-    if (!authLoading && user) {
+    if (isClient && !authLoading && user) {
       const redirectPath = searchParams.get('redirect') || '/blog';
       console.log(`[LoginPage] useEffect - Redirecting to: ${redirectPath}`);
       router.push(redirectPath);
     }
-  }, [user, authLoading, router, searchParams]);
+  }, [user, authLoading, router, searchParams, isClient]);
 
   // OAuth 로그인 오류 메시지 처리
   useEffect(() => {
-    const errorParam = searchParams.get('error');
-    if (errorParam === 'oauth_error') {
-      setMessage('OAuth 로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
+    if (isClient) {
+      const errorParam = searchParams.get('error');
+      if (errorParam === 'oauth_error') {
+        setMessage('OAuth 로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
+      }
     }
-  }, [searchParams]);
+  }, [searchParams, isClient]);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,6 +163,15 @@ const handleOAuthLogin = async (provider: Provider) => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <p>로그인 상태 확인 중...</p>
+      </div>
+    );
+  }
+
+  // 클라이언트에서만 렌더링되는 부분
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p>로딩 중...</p>
       </div>
     );
   }
