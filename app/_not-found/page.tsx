@@ -1,12 +1,19 @@
-import { Suspense } from 'react';
-import NotFoundContent from '@/components/NotFoundContent';
+import dynamic from 'next/dynamic';
+
+const DynamicNotFoundContent = dynamic(
+  () => import('@/components/NotFoundContent'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p>페이지 정보를 불러오는 중...</p>
+      </div>
+    )
+  }
+);
 
 export default function NotFound() {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><p>페이지 정보를 불러오는 중...</p></div>}>
-      <NotFoundContent />
-    </Suspense>
-  );
+  return <DynamicNotFoundContent />;
 }
 
 
