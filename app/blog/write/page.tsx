@@ -285,15 +285,15 @@ export default function BlogEditor() {
   // authLoading이 false이고 user가 없으면 모달이 뜰 것이므로,
   // 여기서는 user가 있는 경우의 UI 또는 모달이 닫힌 후의 UI를 렌더링
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 mt-20">
       {/* Top Navigation */}
       <BlogHeader />
       <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center space-x-4">
+          {/* <div className="flex items-center space-x-4">
             <div className="text-2xl font-bold text-gray-900">블로그AI</div>
-          </div>
+          </div> */}
 
           {/* Auto-save indicator */}
           <div className="flex items-center space-x-2">
@@ -323,12 +323,12 @@ export default function BlogEditor() {
               <Send className="w-4 h-4 mr-2" />
               게시
             </Button>
-            {user && (
+            {/* {user && (
               <Avatar className="w-8 h-8">
                 <AvatarImage src={user.user_metadata?.avatar_url || "/placeholder.svg?height=32&width=32"} />
                 <AvatarFallback>{user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0) || "U"}</AvatarFallback>
               </Avatar>
-            )}
+            )} */}
           </div>
         </div>
       </header>

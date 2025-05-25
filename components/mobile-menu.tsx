@@ -65,7 +65,7 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
     { name: "문제 인식", href: "/#problem" },
     { name: "솔루션", href: "/#solution" },
     { name: "혜택", href: "/#benefit" },
-    { name: "회사 소개", href: "#about" },
+    { name: "회사 소개", href: "/#about" },
     { name: "블로그", href: "/blog" },
     // { name: "연락처", href: "/#contact" },
   ]
