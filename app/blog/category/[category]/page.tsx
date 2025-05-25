@@ -23,7 +23,6 @@ interface Category {
   id: string; // Supabase에서는 보통 UUID
   name: string;
   slug: string;
-  description?: string | null; // 카테고리 설명
   posts_count?: number; // 게시물 수 (집계 결과)
 }
 
@@ -72,7 +71,6 @@ export default function CategoryPage() {
             id,
             name,
             slug,
-            description,
             posts_count:posts(count)
           `)
           .order('name', { ascending: true });
@@ -83,7 +81,6 @@ export default function CategoryPage() {
             id: c.id,
             name: c.name,
             slug: c.slug,
-            description: c.description,
             posts_count: (c.posts_count as any[] | null)?.[0]?.count || 0,
         })) || [];
         setCategories(fetchedCategories);
@@ -96,7 +93,7 @@ export default function CategoryPage() {
             // slug는 있지만 카테고리 목록에 없는 경우, 직접 DB에서 조회 시도
             const { data: singleCategoryData, error: singleCategoryError } = await supabase
                 .from('categories')
-                .select(`id, name, slug, description, posts_count:posts(count)`)
+                .select(`id, name, slug, posts_count:posts(count)`)
                 .eq('slug', categorySlug)
                 .single();
             if (singleCategoryError && singleCategoryError.code !== 'PGRST116') { // PGRST116: no rows found
@@ -106,7 +103,6 @@ export default function CategoryPage() {
                     id: singleCategoryData.id,
                     name: singleCategoryData.name,
                     slug: singleCategoryData.slug,
-                    description: singleCategoryData.description,
                     posts_count: (singleCategoryData.posts_count as any[] | null)?.[0]?.count || 0,
                 });
             } else {
@@ -155,7 +151,7 @@ export default function CategoryPage() {
               published_at,
               read_time,
               author:author_id ( id, name, image_url, role ),
-              category:category_id ( id, name, slug, description ),
+              category:category_id ( id, name, slug ),
               tags:post_tags ( tag:tag_id ( id, name, slug ) )
             `)
             .eq('category_id', currentCatData.id) // 현재 카테고리 ID로 필터링
@@ -182,7 +178,6 @@ export default function CategoryPage() {
                 id: post.category.id,
                 name: post.category.name,
                 slug: post.category.slug,
-                description: post.category.description,
             } : null,
             tags: post.tags ? post.tags.map((tagRelation: any) => tagRelation.tag) : [],
           })) || [];
@@ -293,7 +288,7 @@ export default function CategoryPage() {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="text-lg text-gray-300 mb-8"
             >
-              {currentCategory?.description || "이 카테고리의 최신 글과 인사이트를 확인하세요."}
+              {"이 카테고리의 최신 글과 인사이트를 확인하세요."}
             </motion.p>
 
             <motion.div
@@ -420,6 +415,7 @@ export default function CategoryPage() {
                             alt={post.title}
                             fill
                             className="object-cover transition-transform hover:scale-105 duration-500"
+                            priority={true}
                           />
                           <div className="absolute top-4 left-4 bg-green-500 text-white text-xs px-2 py-1 rounded">
                             {post.category?.name}
