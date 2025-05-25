@@ -9,7 +9,7 @@ import { motion } from "framer-motion"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import Header from "@/components/header"
+import BlogHeader from "@/components/BlogHeader"
 import type { Provider } from '@supabase/supabase-js';
 
 export default function LoginPageContent() {
@@ -137,7 +137,7 @@ export default function LoginPageContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
+      <BlogHeader />
       <section className="pt-32 pb-16 flex items-center justify-center min-h-screen">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

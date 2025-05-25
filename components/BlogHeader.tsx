@@ -4,15 +4,19 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from 'next/image';
 import { Button } from "@/components/ui/button"
-import { Menu, ChevronDown } from "lucide-react"
+import { Menu } from "lucide-react"
 import MobileMenu from "./mobile-menu"
 import { motion, useScroll, useTransform } from "framer-motion"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/AuthProvider"; // AuthProvider 훅 임포트
+import { supabase } from "@/lib/supabaseClient"; // Supabase 클라이언트 임포트
 
-export default function Header() {
+export default function BlogHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const { scrollY } = useScroll()
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth(); // 인증 상태 가져오기
 
   // 스크롤에 따른 헤더 배경 투명도 조절
   const headerBgOpacity = useTransform(scrollY, [0, 100], [0.9, 1])
@@ -31,6 +35,11 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/login'); // 로그아웃 후 로그인 페이지로 리디렉션
+  };
+
   return (
     <>
       <motion.header
@@ -47,9 +56,9 @@ export default function Header() {
               <Image
                 src="/logo.png"
                 alt="AIon Inc Logo"
-                width={40}  // 실제 로고 이미지 크기에 맞게 조정하세요. => 의미 없음
-                height={40} // 실제 로고 이미지 크기에 맞게 조정하세요. => 의미 없음
-                className="h-12 w-auto" // 예시: 높이를 기준으로 자동 너비 조정 (Tailwind CSS)
+                width={40}
+                height={40}
+                className="h-12 w-auto"
               />
               <span className="text-4xl font-bold text-black ml-2">AIon</span>
               <span className="text-4xl font-bold text-green-500 ml-2">RomiⒻ</span>
@@ -58,54 +67,54 @@ export default function Header() {
 
           <nav className="hidden md:flex space-x-1">
             <Link
-              href="/#problem"
+              href="/blog/category/ai-trend"
               className="text-xl font-bold px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
             >
-              문제 인식
+              AI 트렌드
             </Link>
             <Link
-              href="/#solution"
+              href="/blog/category/case-study"
               className="text-xl font-bold px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
             >
-              솔루션
+              성공 사례
             </Link>
             <Link
-              href="/#benefit"
+              href="/blog/category/tech"
               className="text-xl font-bold px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
             >
-              혜택
+              기술 블로그
             </Link>
-            <Link
-              href="/#about"
-              className="text-xl font-bold px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
-            >
-              회사 소개
-            </Link>
-
-            <Link
-              href="/blog"
-              className="text-xl font-bold px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
-            >
-              블로그
-            </Link>
-
-            {/* <Link
-              href="/#contact"
-              className="text-xl font-bold px-3 py-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
-            >
-              연락처
-            </Link> */}
           </nav>
 
           <div className="flex items-center space-x-4">
-            {/* 문의 버튼 */}
-            <Link href="/#contact" passHref legacyBehavior>
-            <Button className="hidden md:flex bg-orange-500 hover:bg-orange-600 text-white rounded-full">
-              문의
-            </Button>
-            </Link>
+            {authLoading ? (
+              <p className="text-gray-600">로딩 중...</p>
+            ) : user ? (
+              <div className="flex items-center space-x-2">
+                {user.user_metadata?.avatar_url && (
+                  <Image
+                    src={user.user_metadata.avatar_url}
+                    alt="User Avatar"
+                    width={32}
+                    height={32}
+                    className="rounded-full"
+                  />
+                )}
+                <span className="text-gray-600 font-medium hidden sm:inline">
+                  {user.user_metadata?.full_name || user.email}
+                </span>
+                <Button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white rounded-full">
+                  로그아웃
+                </Button>
+              </div>
+            ) : (
+              <Link href="/login" passHref legacyBehavior>
+                <Button className="bg-blue-500 hover:bg-blue-600 text-white rounded-full">
+                  로그인
+                </Button>
+              </Link>
+            )}
 
-            {/* 문의 버튼 */}
             <button
               className="md:hidden p-2 rounded-md hover:bg-gray-100 transition-colors"
               onClick={() => setIsMenuOpen(true)}

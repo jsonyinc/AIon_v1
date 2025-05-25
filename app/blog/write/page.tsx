@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { ImagePlus, X, Save, Eye } from "lucide-react"
-import Header from "@/components/header"
+import BlogHeader from "@/components/BlogHeader"
 import { supabase } from "@/lib/supabaseClient" // Supabase 클라이언트 임포트
 import { useRouter } from 'next/navigation'; // useRouter 임포트
 
@@ -89,7 +89,7 @@ export default function BlogWritePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
+      <BlogHeader />
 
       <div className="pt-32 pb-16">
         <div className="container mx-auto px-4">

@@ -7,7 +7,7 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Calendar, User, Tag, ArrowRight, Clock } from "lucide-react"
-import Header from "@/components/header"
+import BlogHeader from "@/components/BlogHeader"
 import { useParams } from 'next/navigation';
 import { supabase } from "@/lib/supabaseClient"; // Supabase 클라이언트 임포트
 
@@ -268,7 +268,7 @@ export default function CategoryPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
+      <BlogHeader />
 
       {/* 카테고리 헤더 */}
       <section className="pt-32 pb-16 bg-gradient-to-r from-slate-900 to-slate-800 text-white">

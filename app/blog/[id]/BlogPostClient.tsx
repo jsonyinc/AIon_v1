@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Calendar, Tag, Clock, Heart, MessageSquare, Share2, ThumbsUp } from "lucide-react";
-import Header from "@/components/header"; // Header는 Layout으로 옮기는 것이 더 일반적일 수 있습니다.
+import BlogHeader from "@/components/BlogHeader";
 import { useRouter } from 'next/navigation';
 // BlogPost 인터페이스는 서버 컴포넌트와 공유하거나, 여기서 다시 정의/임포트 필요
 // 우선 여기서 간단히 정의하고, 필요시 공유 파일로 이동 고려
@@ -148,7 +148,7 @@ export default function BlogPostClient({ initialPost, postId }: BlogPostClientPr
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header /> {/* Header는 Layout으로 옮기는 것을 고려 */}
+      <BlogHeader />
       <section className="pt-32 pb-16 bg-gradient-to-r from-slate-900 to-slate-800 text-white">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
