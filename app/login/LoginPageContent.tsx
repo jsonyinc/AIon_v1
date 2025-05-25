@@ -78,7 +78,7 @@ export default function LoginPageContent() {
     setMessage(null);
     const redirect = searchParams.get('redirect') || '/blog';
     console.log('Redirect param:', redirect);
-    const redirectToUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirect)}`;
+    const redirectToUrl = `${window.location.origin}/blog`;
     console.log('Final redirectTo URL:', redirectToUrl);
 
     const options = {
@@ -155,13 +155,13 @@ export default function LoginPageContent() {
           <div className="space-y-3 mb-6">
             <Button
               onClick={() => handleOAuthLogin('kakao')}
-              className="w-full flex items-center justify-center bg-yellow-400 hover:bg-yellow-500 text-yellow-800 py-2 px-4 rounded"
-              disabled={loading}
+              className="w-full flex items-center justify-center bg-yellow-400 hover:bg-yellow-500 text-yellow-800 py-2 px-4 rounded opacity-50 cursor-not-allowed"
+              disabled
             >
               <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 3c-4.97 0-9 3.185-9 7.115 0 2.557 1.707 4.8 4.27 6.054-.188.702-.682 2.545-.78 2.94-.111.466.497.845.895.481.091-.08 1.419-1.341 2.086-1.979.468.073.95.111 1.44.111 4.97 0 9-3.185 9-7.115C21 6.185 16.97 3 12 3" />
               </svg>
-              카카오톡으로 로그인
+              카카오톡으로 로그인 (준비중)
             </Button>
 
             <Button

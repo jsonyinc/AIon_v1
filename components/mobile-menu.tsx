@@ -67,7 +67,7 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
     { name: "혜택", href: "/#benefit" },
     { name: "회사 소개", href: "#about" },
     { name: "블로그", href: "/blog" },
-    { name: "연락처", href: "/#contact" },
+    // { name: "연락처", href: "/#contact" },
   ]
 
   return (
@@ -132,11 +132,11 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                   exit="closed"
                 >
                   <Link
-                    href="#contact"
+                    href="/#contact"
                     onClick={onClose}
                     className="block w-full py-3 px-4 bg-orange-500 hover:bg-orange-600 text-white text-center rounded-full transition-colors"
                   >
-                    상담 신청
+                    문의
                   </Link>
                 </motion.div>
 

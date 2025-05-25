@@ -16,7 +16,7 @@ export default function BlogHeader() {
   const [scrolled, setScrolled] = useState(false)
   const { scrollY } = useScroll()
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth(); // 인증 상태 가져오기
+  const { user, loading: authLoading } = useAuth(); // AuthProvider의 loading 상태 사용
 
   // 스크롤에 따른 헤더 배경 투명도 조절
   const headerBgOpacity = useTransform(scrollY, [0, 100], [0.9, 1])
@@ -37,7 +37,7 @@ export default function BlogHeader() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.push('/login'); // 로그아웃 후 로그인 페이지로 리디렉션
+    router.push('/blog'); // 로그아웃 후 블로그 메인 페이지로 리디렉션
   };
 
   return (
@@ -88,7 +88,7 @@ export default function BlogHeader() {
 
           <div className="flex items-center space-x-4">
             {authLoading ? (
-              <p className="text-gray-600">로딩 중...</p>
+              <p className="text-gray-600 text-sm">로딩 중...</p>
             ) : user ? (
               <div className="flex items-center space-x-2">
                 {user.user_metadata?.avatar_url && (

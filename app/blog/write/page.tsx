@@ -1,57 +1,236 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
-import Link from "next/link"
-import { motion } from "framer-motion"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
-import { ImagePlus, X, Save, Eye } from "lucide-react"
+import {
+  Bold,
+  Italic,
+  Underline,
+  Heading1,
+  Heading2,
+  List,
+  Code,
+  Quote,
+  ImageIcon,
+  Save,
+  Eye,
+  Send,
+  Upload,
+  CheckCircle,
+  ListOrdered,
+  EyeOff,
+  Maximize2,
+  Minimize2,
+} from "lucide-react"
 import BlogHeader from "@/components/BlogHeader"
-import { supabase } from "@/lib/supabaseClient" // Supabase 클라이언트 임포트
-import { useRouter } from 'next/navigation'; // useRouter 임포트
+import { supabase } from "@/lib/supabaseClient"
+import { useRouter } from 'next/navigation'
+import { useAuth } from "@/components/AuthProvider"
 
-// 블로그 카테고리 데이터 (필요시 Supabase에서 가져오도록 수정 가능)
-const categories = [
-  { id: "ai-trend", name: "AI 트렌드" },
-  { id: "case-study", name: "성공 사례" },
-  { id: "tech", name: "기술 블로그" },
-  { id: "news", name: "뉴스" },
-]
+// 간단한 마크다운 파서
+const parseMarkdown = (markdown: string): string => {
+  let html = markdown
 
-export default function BlogWritePage() {
-  const router = useRouter(); // useRouter 훅 사용
+  // 코드 블록 (```로 감싸진 부분)
+  html = html.replace(
+    /```([\s\S]*?)```/g,
+    '<pre class="bg-gray-100 p-4 rounded-lg overflow-x-auto"><code>$1</code></pre>',
+  )
+
+  // 인라인 코드 (`로 감싸진 부분)
+  html = html.replace(/`([^`]+)`/g, '<code class="bg-gray-100 px-2 py-1 rounded text-sm">$1</code>')
+
+  // 제목들
+  html = html.replace(/^### (.*$)/gm, '<h3 class="text-xl font-semibold mt-6 mb-3">$1</h3>')
+  html = html.replace(/^## (.*$)/gm, '<h2 class="text-2xl font-bold mt-8 mb-4">$1</h2>')
+  html = html.replace(/^# (.*$)/gm, '<h1 class="text-3xl font-bold mt-8 mb-6">$1</h1>')
+
+  // 굵게
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold">$1</strong>')
+
+  // 기울임
+  html = html.replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+
+  // 밑줄
+  html = html.replace(/<u>(.*?)<\/u>/g, '<u class="underline">$1</u>')
+
+  // 인용문
+  html = html.replace(
+    /^> (.*$)/gm,
+    '<blockquote class="border-l-4 border-gray-300 pl-4 italic text-gray-600 my-4">$1</blockquote>',
+  )
+
+  // 순서 없는 목록
+  html = html.replace(/^- (.*$)/gm, '<li class="ml-4">• $1</li>')
+
+  // 순서 있는 목록
+  html = html.replace(/^\d+\. (.*$)/gm, '<li class="ml-4 list-decimal">$1</li>')
+
+  // 이미지
+  html = html.replace(
+    /!\[([^\]]*)\]$$([^)]+)$$/g,
+    '<img src="$2" alt="$1" class="max-w-full h-auto rounded-lg my-4" />',
+  )
+
+  // 링크
+  html = html.replace(/\[([^\]]+)\]$$([^)]+)$$/g, '<a href="$2" class="text-blue-600 hover:underline">$1</a>')
+
+  // 줄바꿈
+  html = html.replace(/\n/g, "<br />")
+
+  return html
+}
+
+export default function BlogEditor() {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
   const [category, setCategory] = useState("")
-  const [tags, setTags] = useState<string[]>([])
-  const [currentTag, setCurrentTag] = useState("")
-  const [showLoginModal, setShowLoginModal] = useState(true) // 로그인 모달 상태 (임시)
-  const [previewMode, setPreviewMode] = useState(false)
+  const [isAutoSaved, setIsAutoSaved] = useState(false)
+  const [textStyle, setTextStyle] = useState("normal")
+  const [showPreview, setShowPreview] = useState(true)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [showLoginModal, setShowLoginModal] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  const handleAddTag = () => {
-    if (currentTag.trim() && !tags.includes(currentTag.trim())) {
-      setTags([...tags, currentTag.trim()])
-      setCurrentTag("")
+  useEffect(() => {
+    // authLoading이 false로 바뀌고, user가 없을 때만 모달을 띄움
+    if (!authLoading && !user) {
+      console.log("[BlogEditor] Auth loading finished, user not found. Showing login modal.");
+      setShowLoginModal(true);
+    }
+    // 사용자가 있거나, 아직 로딩 중이면 모달을 띄우지 않음
+    if (user) {
+      setShowLoginModal(false);
+    }
+  }, [authLoading, user]);
+
+  const handleAutoSave = () => {
+    setIsAutoSaved(true)
+    setTimeout(() => setIsAutoSaved(false), 2000)
+  }
+
+  // 텍스트 선택 영역 가져오기
+  const getSelectedText = () => {
+    const textarea = textareaRef.current
+    if (!textarea) return { start: 0, end: 0, selectedText: "" }
+
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const selectedText = content.substring(start, end)
+
+    return { start, end, selectedText }
+  }
+
+  // 텍스트 삽입/교체 함수
+  const insertText = (before: string, after = "", replaceSelected = true) => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+
+    const { start, end, selectedText } = getSelectedText()
+
+    let newText
+    if (replaceSelected && selectedText) {
+      newText = content.substring(0, start) + before + selectedText + after + content.substring(end)
+    } else {
+      newText = content.substring(0, start) + before + after + content.substring(end)
+    }
+
+    setContent(newText)
+
+    // 커서 위치 조정
+    setTimeout(() => {
+      const newCursorPos = start + before.length + (replaceSelected ? selectedText.length : 0)
+      textarea.setSelectionRange(newCursorPos, newCursorPos)
+      textarea.focus()
+    }, 0)
+  }
+
+  // 줄 시작에 텍스트 삽입
+  const insertAtLineStart = (prefix: string) => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+
+    const { start } = getSelectedText()
+    const lines = content.split("\n")
+    let currentPos = 0
+    let lineIndex = 0
+
+    // 현재 커서가 있는 줄 찾기
+    for (let i = 0; i < lines.length; i++) {
+      if (currentPos + lines[i].length >= start) {
+        lineIndex = i
+        break
+      }
+      currentPos += lines[i].length + 1 // +1 for \n
+    }
+
+    lines[lineIndex] = prefix + lines[lineIndex]
+    setContent(lines.join("\n"))
+
+    setTimeout(() => {
+      textarea.focus()
+    }, 0)
+  }
+
+  // 포맷팅 함수들
+  const formatBold = () => insertText("**", "**")
+  const formatItalic = () => insertText("*", "*")
+  const formatUnderline = () => insertText("<u>", "</u>")
+  const formatH1 = () => insertAtLineStart("# ")
+  const formatH2 = () => insertAtLineStart("## ")
+  const formatList = () => insertAtLineStart("- ")
+  const formatOrderedList = () => insertAtLineStart("1. ")
+  const formatCode = () => {
+    const { selectedText } = getSelectedText()
+    if (selectedText.includes("\n")) {
+      insertText("```\n", "\n```")
+    } else {
+      insertText("`", "`")
+    }
+  }
+  const formatQuote = () => insertAtLineStart("> ")
+
+  // 텍스트 스타일 변경
+  const handleStyleChange = (style: string) => {
+    setTextStyle(style)
+    const { start } = getSelectedText()
+
+    switch (style) {
+      case "title":
+        insertAtLineStart("# ")
+        break
+      case "subtitle":
+        insertAtLineStart("## ")
+        break
+      case "quote":
+        insertAtLineStart("> ")
+        break
+      default:
+        break
     }
   }
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter((tag) => tag !== tagToRemove))
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault()
-      handleAddTag()
+  // 이미지 삽입
+  const insertImage = () => {
+    const url = prompt("이미지 URL을 입력하세요:")
+    if (url) {
+      const alt = prompt("이미지 설명을 입력하세요 (선택사항):")
+      insertText(`![${alt || "이미지"}](${url})`, "", false)
     }
   }
 
   const handlePublish = async () => {
+    if (!user) {
+      setShowLoginModal(true);
+      return;
+    }
+
     // 필수 필드 유효성 검사
     if (!title.trim() || !content.trim() || !category) {
       alert("제목, 내용, 카테고리는 필수 입력 항목입니다.");
@@ -66,280 +245,218 @@ export default function BlogWritePage() {
           title: title.trim(),
           content: content.trim(),
           category: category,
-          // created_at은 기본값으로 자동 생성
-          // id도 기본값으로 자동 생성
-          // image, author, tags 등은 현재 스키마에 없으므로 제외
         },
       ])
-      .select(); // 삽입된 데이터 반환 (ID 확인용)
+      .select();
 
     if (error) {
       console.error('Error publishing post:', error);
       alert("게시글 저장 중 오류가 발생했습니다.");
     } else if (data && data.length > 0) {
       alert("게시글이 성공적으로 저장되었습니다.");
-      // 게시글 목록 페이지 또는 상세 페이지로 리다이렉트
-      router.push('/blog'); // 블로그 목록 페이지로 이동
-      // 또는 router.push(`/blog/${data[0].id}`); // 작성된 게시물 상세 페이지로 이동
+      router.push('/blog');
     } else {
-       // 데이터는 없지만 오류도 없는 경우 (삽입 실패)
-       alert("게시글 저장에 실패했습니다.");
+      alert("게시글 저장에 실패했습니다.");
     }
   }
 
+  const toolbarButtons = [
+    { icon: Bold, label: "굵게", action: formatBold, shortcut: "Ctrl+B" },
+    { icon: Italic, label: "기울임", action: formatItalic, shortcut: "Ctrl+I" },
+    { icon: Underline, label: "밑줄", action: formatUnderline },
+    { icon: Heading1, label: "제목 1", action: formatH1 },
+    { icon: Heading2, label: "제목 2", action: formatH2 },
+    { icon: List, label: "목록", action: formatList },
+    { icon: ListOrdered, label: "번호 목록", action: formatOrderedList },
+    { icon: Code, label: "코드", action: formatCode },
+    { icon: Quote, label: "인용", action: formatQuote },
+    { icon: ImageIcon, label: "이미지 삽입", action: insertImage },
+  ]
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p>로그인 상태 확인 중...</p>
+      </div>
+    );
+  }
+
+
+  // authLoading이 false이고 user가 없으면 모달이 뜰 것이므로,
+  // 여기서는 user가 있는 경우의 UI 또는 모달이 닫힌 후의 UI를 렌더링
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Top Navigation */}
       <BlogHeader />
+      <header className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          {/* Logo */}
+          <div className="flex items-center space-x-4">
+            <div className="text-2xl font-bold text-gray-900">블로그AI</div>
+          </div>
 
-      <div className="pt-32 pb-16">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-6 flex items-center justify-between">
-              <Link href="/blog" className="text-gray-600 hover:text-gray-900 inline-flex items-center">
-                <svg
-                  className="w-4 h-4 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                  ></path>
-                </svg>
-                블로그로 돌아가기
-              </Link>
-
-              <div className="flex space-x-2">
-                <Button
-                  variant={previewMode ? "outline" : "default"}
-                  className={previewMode ? "bg-white" : "bg-green-500 hover:bg-green-600"}
-                  onClick={() => setPreviewMode(false)}
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  작성
-                </Button>
-                <Button
-                  variant={previewMode ? "default" : "outline"}
-                  className={previewMode ? "bg-green-500 hover:bg-green-600" : "bg-white"}
-                  onClick={() => setPreviewMode(true)}
-                >
-                  <Eye className="h-4 w-4 mr-2" />
-                  미리보기
-                </Button>
+          {/* Auto-save indicator */}
+          <div className="flex items-center space-x-2">
+            {isAutoSaved && (
+              <div className="flex items-center space-x-1 text-green-600 text-sm">
+                <CheckCircle className="w-4 h-4" />
+                <span>저장됨</span>
               </div>
+            )}
+          </div>
+
+          {/* Action buttons and profile */}
+          <div className="flex items-center space-x-4">
+            <Button variant="outline" size="sm" onClick={handleAutoSave}>
+              <Save className="w-4 h-4 mr-2" />
+              저장
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setShowPreview(!showPreview)}>
+              {showPreview ? <EyeOff className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
+              {showPreview ? "미리보기 숨김" : "미리보기"}
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setIsFullscreen(!isFullscreen)}>
+              {isFullscreen ? <Minimize2 className="w-4 h-4 mr-2" /> : <Maximize2 className="w-4 h-4 mr-2" />}
+              {isFullscreen ? "축소" : "전체화면"}
+            </Button>
+            <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={handlePublish}>
+              <Send className="w-4 h-4 mr-2" />
+              게시
+            </Button>
+            {user && (
+              <Avatar className="w-8 h-8">
+                <AvatarImage src={user.user_metadata?.avatar_url || "/placeholder.svg?height=32&width=32"} />
+                <AvatarFallback>{user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0) || "U"}</AvatarFallback>
+              </Avatar>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* Main Editor */}
+      <main className={`${isFullscreen ? "max-w-full" : "max-w-7xl"} mx-auto px-6 py-8`}>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          {/* Category Selection */}
+          <div className="px-8 pt-8 pb-4">
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger className="w-64 border-0 border-b border-gray-200 rounded-none px-0 focus:ring-0">
+                <SelectValue placeholder="카테고리 선택..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ai-trend">AI 트렌드</SelectItem>
+                <SelectItem value="case-study">성공 사례</SelectItem>
+                <SelectItem value="tech">기술 블로그</SelectItem>
+                <SelectItem value="news">뉴스</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Title Input */}
+          <div className="px-8 pb-6">
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="제목을 입력하세요..."
+              className="text-4xl font-bold border-0 px-0 py-4 focus-visible:ring-0 placeholder:text-gray-400"
+            />
+          </div>
+
+          {/* Toolbar */}
+          <div className="px-8 py-4 border-t border-b border-gray-100">
+            <div className="flex items-center space-x-2 flex-wrap gap-2">
+              <Select value={textStyle} onValueChange={handleStyleChange}>
+                <SelectTrigger className="w-32 h-8 text-sm border-gray-200">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="normal">본문</SelectItem>
+                  <SelectItem value="title">제목</SelectItem>
+                  <SelectItem value="subtitle">부제목</SelectItem>
+                  <SelectItem value="quote">인용문</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="w-px h-6 bg-gray-300 mx-2" />
+              {toolbarButtons.map((button, index) => (
+                <Button
+                  key={index}
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 hover:bg-gray-100"
+                  title={button.label}
+                  onClick={button.action}
+                >
+                  <button.icon className="w-4 h-4" />
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Editor and Preview Layout */}
+          <div className={`flex ${showPreview ? "divide-x divide-gray-200" : ""}`}>
+            {/* Content Editor */}
+            <div className={`${showPreview ? "w-1/2" : "w-full"} px-8 py-6`}>
+              <div className="mb-2 text-sm font-medium text-gray-700">편집</div>
+              <Textarea
+                ref={textareaRef}
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="글을 작성해보세요... 마크다운 문법을 사용할 수 있습니다."
+                className="min-h-96 border-0 resize-none focus-visible:ring-0 text-lg leading-relaxed placeholder:text-gray-400"
+              />
             </div>
 
-            {!previewMode ? (
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="mb-6">
-                  <Label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                    제목
-                  </Label>
-                  <Input
-                    id="title"
-                    placeholder="제목을 입력하세요"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="text-xl font-bold"
+            {/* Preview Panel */}
+            {showPreview && (
+              <div className="w-1/2 px-8 py-6">
+                <div className="mb-2 text-sm font-medium text-gray-700">미리보기</div>
+                <div className="min-h-96 prose prose-lg max-w-none">
+                  {title && <h1 className="text-4xl font-bold mb-6 text-gray-900">{title}</h1>}
+                  <div
+                    className="text-lg leading-relaxed text-gray-800"
+                    dangerouslySetInnerHTML={{
+                      __html: content
+                        ? parseMarkdown(content)
+                        : '<p class="text-gray-400">여기에 미리보기가 표시됩니다...</p>',
+                    }}
                   />
-                </div>
-
-                <div className="mb-6">
-                  <Label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-                    카테고리
-                  </Label>
-                  <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="카테고리 선택" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="mb-6">
-                  <Label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-1">
-                    태그
-                  </Label>
-                  <div className="flex">
-                    <Input
-                      id="tags"
-                      placeholder="태그 입력 후 Enter"
-                      value={currentTag}
-                      onChange={(e) => setCurrentTag(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      className="flex-1 mr-2"
-                    />
-                    <Button onClick={handleAddTag} type="button">
-                      추가
-                    </Button>
-                  </div>
-                  {tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {tags.map((tag) => (
-                        <div key={tag} className="inline-flex items-center px-3 py-1 bg-gray-100 rounded-full text-sm">
-                          #{tag}
-                          <button
-                            onClick={() => handleRemoveTag(tag)}
-                            className="ml-1 text-gray-500 hover:text-gray-700"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="mb-6">
-                  <Label htmlFor="thumbnail" className="block text-sm font-medium text-gray-700 mb-1">
-                    썸네일 이미지
-                  </Label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                    <ImagePlus className="h-12 w-12 mx-auto text-gray-400 mb-2" />
-                    <p className="text-sm text-gray-500 mb-2">
-                      이미지를 드래그하여 업로드하거나 클릭하여 파일을 선택하세요
-                    </p>
-                    <Button variant="outline" size="sm">
-                      이미지 선택
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="mb-6">
-                  <Label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
-                    내용
-                  </Label>
-                  <Textarea
-                    id="content"
-                    placeholder="내용을 입력하세요..."
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    className="min-h-[400px]"
-                  />
-                </div>
-
-                <div className="flex justify-end">
-                  <Button onClick={handlePublish} className="bg-green-500 hover:bg-green-600">
-                    게시하기
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                <div className="p-8">
-                  <h1 className="text-3xl font-bold mb-4">{title || "제목을 입력하세요"}</h1>
-
-                  <div className="flex items-center text-sm text-gray-500 mb-6 space-x-4">
-                    {category && (
-                      <div className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
-                        {categories.find((cat) => cat.id === category)?.name}
-                      </div>
-                    )}
-                    <div>2025-05-17</div>
-                    <div>작성자: 사용자</div>
-                  </div>
-
-                  {tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-6">
-                      {tags.map((tag) => (
-                        <div key={tag} className="inline-flex items-center px-3 py-1 bg-gray-100 rounded-full text-sm">
-                          #{tag}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="prose max-w-none">
-                    {content ? (
-                      <div dangerouslySetInnerHTML={{ __html: content.replace(/\n/g, "<br />") }} />
-                    ) : (
-                      <p className="text-gray-400">내용을 입력하세요...</p>
-                    )}
-                  </div>
                 </div>
               </div>
             )}
           </div>
+
+          {/* Media Upload Zone */}
+          {!showPreview && (
+            <div className="px-8 pb-8">
+              <div className="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center hover:border-gray-300 transition-colors">
+                <Upload className="w-8 h-8 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600 mb-2">이미지를 드래그하거나 클릭하여 업로드하세요</p>
+                <p className="text-sm text-gray-400">JPG, PNG, GIF 파일 최대 10MB 지원</p>
+                <Button variant="outline" className="mt-4">
+                  파일 선택
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+      </main>
 
       {/* 로그인 모달 */}
       {showLoginModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-lg p-8 max-w-md w-full"
-          >
+          <div className="bg-white rounded-lg p-8 max-w-md w-full">
             <h3 className="text-xl font-bold mb-4">로그인이 필요합니다</h3>
             <p className="text-gray-600 mb-6">
               블로그 글을 작성하려면 로그인이 필요합니다. 소셜 계정으로 간편하게 로그인하세요.
             </p>
-
-            <div className="space-y-3 mb-6">
-              <button className="w-full flex items-center justify-center bg-yellow-400 hover:bg-yellow-500 text-yellow-800 py-2 px-4 rounded">
-                <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 3c-4.97 0-9 3.185-9 7.115 0 2.557 1.707 4.8 4.27 6.054-.188.702-.682 2.545-.78 2.94-.111.466.497.845.895.481.091-.08 1.419-1.341 2.086-1.979.468.073.95.111 1.44.111 4.97 0 9-3.185 9-7.115C21 6.185 16.97 3 12 3" />
-                </svg>
-                카카오톡으로 로그인
-              </button>
-
-              <button className="w-full flex items-center justify-center bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded">
-                <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M19.543 8.969h-1.528V7.442h-1.528v1.527H15.01v1.528h1.527v1.527h1.528V9.497h1.527V8.969zM12 2C6.477 2 2 6.477 2 12c0 5.523 4.477 10 10 10 5.523 0 10-4.477 10-10 0-5.523-4.477-10-10-10zm.968 15.276h-1.936v-4.538H8.595v-1.936h3.373v-1.528h1.936v1.528h1.528v1.936h-1.528v4.538z" />
-                </svg>
-                네이버로 로그인
-              </button>
-
-              <button className="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">
-                <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
-                </svg>
-                페이스북으로 로그인
-              </button>
-
-              <button className="w-full flex items-center justify-center bg-white border border-gray-300 hover:bg-gray-50 text-gray-800 py-2 px-4 rounded">
-                <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
-                  <path
-                    d="M12.545 10.239v3.821h5.445c-.712 2.315-2.647 3.972-5.445 3.972-3.332 0-6.033-2.701-6.033-6.032s2.701-6.032 6.033-6.032c1.498 0 2.866.549 3.921 1.453l2.814-2.814A9.996 9.996 0 0 0 12 2C6.477 2 2 6.477 2 12s4.477 10 10 10c8.396 0 10-8 10-12 0-.553-.045-1.092-.13-1.618h-9.325z"
-                    fill="#4285F4"
-                  />
-                  <path
-                    d="M2 12c0-5.523 4.477-10 10-10 2.747 0 5.21 1.108 7.032 2.904l-2.814 2.814A5.985 5.985 0 0 0 12 6.032c-3.332 0-6.033 2.701-6.033 6.032s2.701 6.032 6.033 6.032c2.798 0 4.733-1.657 5.445-3.972h-5.445v-3.821H22c.085.526.13 1.065.13 1.618 0 4-1.604 12-10 12-5.523 0-10-4.477-10-10z"
-                    fill="#34A853"
-                  />
-                  <path
-                    d="M12 16.936c-2.798 0-4.733-1.657-5.445-3.972H2c1.105 4.006 4.752 6.932 10 6.932 5.523 0 10-4.477 10-10 0-.553-.045-1.092-.13-1.618h-9.325v3.821h5.445c-.712 2.315-2.647 3.972-5.445 3.972z"
-                    fill="#FBBC05"
-                  />
-                  <path
-                    d="M12 6.032c1.498 0 2.866.549 3.921 1.453l2.814-2.814A9.996 9.996 0 0 0 12 2c-5.523 0-10 4.477-10 10h4.555c.712-2.315 2.647-3.972 5.445-3.972z"
-                    fill="#EA4335"
-                  />
-                </svg>
-                구글로 로그인
-              </button>
-            </div>
-
             <div className="flex justify-between items-center">
-              <button onClick={() => setShowLoginModal(false)} className="text-gray-500 hover:text-gray-700">
+              <Button onClick={() => { setShowLoginModal(false); router.push('/blog'); }} className="text-gray-500 hover:text-gray-700">
                 나중에 하기
-              </button>
-              <Link href="/login" className="text-green-600 hover:text-green-700">
+              </Button>
+              <Button onClick={() => router.push('/login')} className="text-green-600 hover:text-green-700">
                 이메일로 로그인
-              </Link>
+              </Button>
             </div>
-          </motion.div>
+          </div>
         </div>
       )}
     </div>

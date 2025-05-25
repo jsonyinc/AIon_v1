@@ -398,10 +398,11 @@ export default function BlogPage() {
                           <div className="relative h-48 w-full overflow-hidden">
                             {/* Supabase에서 가져온 image_url 사용 */}
                             <Image
-                              src={post.image_url || "/placeholder.svg"} // image_url 사용
+                              src={post.image_url || "/placeholder.svg"}
                               alt={post.title}
                               fill
                               className="object-cover transition-transform hover:scale-105 duration-500"
+                              priority={post.image_url ? false : true}
                             />
                             {post.category && ( // category 객체가 존재하면 표시
                               <div className="absolute top-4 left-4 bg-green-500 text-white text-xs px-2 py-1 rounded">
