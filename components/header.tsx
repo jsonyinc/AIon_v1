@@ -52,7 +52,7 @@ export default function Header() {
                 className="h-12 w-auto" // 예시: 높이를 기준으로 자동 너비 조정 (Tailwind CSS)
               />
               <span className="text-4xl font-bold text-black ml-2">AIon</span>
-              <span className="text-4xl font-bold text-green-500 ml-2">RomiⒻ</span>
+              <span className="text-4xl font-bold text-green-500 ml-2 hidden md:inline">RomiⒻ</span>
             </Link>
           </div>
 
